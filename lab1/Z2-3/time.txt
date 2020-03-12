@@ -1,0 +1,36 @@
+Command: ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0 
+Took: 0.000244 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0 
+Took: 0.002157 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt 
+Took: 0.029915 seconds.
+Command: ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0 
+Took: 0.000178 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0 
+Took: 0.002051 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt 
+Took: 0.027647 seconds.
+Command: ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0 
+Took: 0.000225 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0 
+Took: 0.002118 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt 
+Took: 0.032320 seconds.
+Command: ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0 
+Took: 0.000204 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0 
+Took: 0.001975 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt 
+Took: 0.031233 seconds.
+Command: ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0 
+Took: 0.000243 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0 
+Took: 0.002113 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt 
+Took: 0.027695 seconds.
+Command: ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0 
+Took: 0.000251 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0 
+Took: 0.002165 seconds.
+Command: ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt 
+Took: 0.029702 seconds.

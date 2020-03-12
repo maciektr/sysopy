@@ -1,0 +1,71 @@
+Komentarz:
+Dla przeprowadzonych testów biblioteka kompilowana w sposób statyczny wykazała się wyższą wydajnością. 
+Wielokrotne wykonywanie operacji porównań dla dużych (3782 linii) plików, o wielu niezgodnościach w treści zajmuje dużo czasu.
+Jednakże, zaimplementowana biblioteka stanowi niewielki narzut względem systemowego programu diff, a sam zajęty na wykonanie czas jest stosunkowo niewielki. 
+
+Poniżej znajduje się wygenerowany plik wynikowy.
+
+make -C ../Z1/ dynamic
+make[1]: Wejście do katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z1'
+gcc -std="c11" -fPIC -shared diffwrapper.c -o libdiffwrapper.so
+make[1]: Opuszczenie katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z1'
+cp ../Z1/libdiffwrapper.so libdiffwrapper.so
+gcc -std="c11" main.c -L. -Wl,-rpath=. -ldiffwrapper -o main.out
+make test_
+make[1]: Wejście do katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z2'
+--------------------
+Test dynamic:
+--------------------
+Small file, three differences:
+time ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0
+3
+Took: 0.000153 seconds.
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 3424maxresident)k
+--------------------
+Big files with a lot of differences:
+time ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0
+180
+Took: 0.002280 seconds.
+0.07user 0.00system 0:00.07elapsed 98%CPU (0avgtext+0avgdata 3552maxresident)k
+--------------------
+Multiple comparisons, need reallocation of arrray.
+time ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt  remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt
+180
+3
+Took: 0.033531 seconds.
+1.06user 0.10system 0:01.16elapsed 99%CPU (0avgtext+0avgdata 14828maxresident)k
+--------------------
+make[1]: Opuszczenie katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z2'
+make -C ../Z1/ static
+make[1]: Wejście do katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z1'
+rm -f diffwrapper.o libdiffwrapper.a
+gcc -std="c11" -c diffwrapper.c -o diffwrapper.o
+ar rcs libdiffwrapper.a diffwrapper.o
+make[1]: Opuszczenie katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z1'
+cp ../Z1/diffwrapper.o diffwrapper.o
+gcc -std="c11" -static main.c -L../Z1/ -ldiffwrapper -o main.out
+make test_
+make[1]: Wejście do katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z2'
+--------------------
+Test dynamic:
+--------------------
+Small file, three differences:
+time ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0
+3
+Took: 0.000160 seconds.
+0.00user 0.00system 0:00.00elapsed 66%CPU (0avgtext+0avgdata 3700maxresident)k
+--------------------
+Big files with a lot of differences:
+time ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0
+180
+Took: 0.002030 seconds.
+0.07user 0.00system 0:00.07elapsed 98%CPU (0avgtext+0avgdata 3524maxresident)k
+--------------------
+Multiple comparisons, need reallocation of arrray.
+time ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt  remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt
+180
+3
+Took: 0.028398 seconds.
+0.98user 0.07system 0:01.06elapsed 99%CPU (0avgtext+0avgdata 14176maxresident)k
+--------------------
+make[1]: Opuszczenie katalogu '/home/maciektr/Programowanie/AGH_Laby/sysopy/lab1/Z2'
