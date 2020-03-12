@@ -24,32 +24,32 @@ dynamic_lib:
 dynamic: dynamic_lib
 	$(CC) main.c -L. -Wl,-rpath=. -l$(LIB) -o main.out
 
-test_dynamic: dynamic
+test_: 
 	@echo "--------------------"
 	@echo "Test dynamic:"
 	@echo "--------------------"
 	@echo "Small file, three differences:"
-	./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0
+	time ./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0
 	@echo "--------------------"
 	@echo "Big files with a lot of differences:"
-	./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0
+	time ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0
 	@echo "--------------------"
 	@echo "Multiple comparisons, need reallocation of arrray."
-	./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt
+	time ./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt  remove_block 0 remove_block 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt remove_block 2 remove_block 3 remove_block 4 remove_block 5 remove_block 6 compare_pairs a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt remove_block 7 remove_block 8 remove_block 9 remove_block 10 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt
 	@echo "--------------------"
+
+test_dynamic: dynamic
+	make test_
 
 test_static: static
-	@echo "--------------------"
-	@echo "Test static:"
-	@echo "--------------------"
-	@echo "Small file, three differences:"
-	./main.out create_table 1 compare_pairs a.txt:b.txt count_operations 0
-	@echo "--------------------"
-	@echo "Big files with a lot of differences:"
-	./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt count_operations 0
-	@echo "--------------------"
-	@echo "Multiple comparisons, need reallocation of arrray."
-	./main.out create_table 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt count_operations 0 count_operations 1 compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt compare_pairs big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt big_text_a.txt:big_text_b.txt a.txt:b.txt
-	@echo "--------------------"
+	make test_
 
 test: test_dynamic test_static
+
+optimization: static_lib
+	for opt in 0 1 2 3  ; do \
+		echo "====================" ; \
+		echo "Optimized with" $$opt ; \
+	    $(CC) -static -O$$opt main.c -L$(LIB_PATH) -l$(LIB) -o main.out ; \
+		make test_ ; \
+	done

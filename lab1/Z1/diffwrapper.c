@@ -35,6 +35,10 @@ void remove_block_id(int index, struct array_wrapper *ptr){
     if(ptr == NULL || index >= ptr->used)
         return;
     remove_block(ptr->arr[index]);
+    ptr->arr[index] = NULL;
+    
+    if(index == ptr->used-1)
+        ptr->used--;
 }
 
 void remove_array(struct array_wrapper *ptr){
