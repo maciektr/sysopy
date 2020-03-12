@@ -31,6 +31,12 @@ void remove_block(struct block *ptr){
     free(ptr);
 }
 
+void remove_block_id(int index, struct array_wrapper *ptr){
+    if(ptr == NULL || index >= ptr->used)
+        return;
+    remove_block(ptr->arr[index]);
+}
+
 void remove_array(struct array_wrapper *ptr){
     if(ptr == NULL)
         return;
@@ -101,7 +107,8 @@ struct block *read_block(struct array_wrapper *wrapper){
     return b_ptr;
 }
 
-void make_comparison(char *first, char *second, struct array_wrapper *wrapper){
+int make_comparison(char *first, char *second, struct array_wrapper *wrapper){
+    // returns id of created block
     char *command = calloc((strlen(DIFF_CMD)+strlen(first)+strlen(SPACE)+strlen(second)+3+strlen(DIFF_OUT)), sizeof(char));
 
     strcpy(command, DIFF_CMD);
@@ -115,6 +122,7 @@ void make_comparison(char *first, char *second, struct array_wrapper *wrapper){
     free(command);
 
     wrapper->arr[wrapper->used++] = read_block(wrapper);   
+    return wrapper->used-1;
 }
 
 void compare_files(int files_count,char **left, char **right, struct array_wrapper *wrapper){
@@ -123,3 +131,18 @@ void compare_files(int files_count,char **left, char **right, struct array_wrapp
     }
 }
 
+int count_operations(int index, struct array_wrapper *ptr){
+    assert(ptr->arr[index]);
+    return ptr->arr[index]->used;
+}
+
+void remove_operation(int index, struct block *ptr){
+    if(ptr == NULL || index >= ptr->used)
+        return;
+    free(ptr->operations[index]);
+    while(index + 1 < ptr->used){
+        ptr->operations[index] = ptr->operations[index+1];
+        index++;
+    }
+    ptr->used--;
+}

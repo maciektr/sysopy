@@ -23,15 +23,13 @@
     };
     struct array_wrapper *create_array(int size);
     void remove_array(struct array_wrapper *ptr);
+    void remove_block_id(int index, struct array_wrapper *ptr);
 
     struct block *read_block(struct array_wrapper *wrapper);
-    void make_comparison(char *first, char *second, struct array_wrapper *wrapper);
+    int make_comparison(char *first, char *second, struct array_wrapper *wrapper);
     void compare_files(int files_count,char **left, char **right, struct array_wrapper *wrapper);
-
-    void remove_change(int block_index, int change_index);
-
-    int count_changes(int block_index);
-    
+    int count_operations(int index, struct array_wrapper *ptr);
+    void remove_operation(int index, struct block *ptr);
 
     // helper functions
     int count_lines(char *path);
