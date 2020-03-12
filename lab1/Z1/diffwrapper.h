@@ -6,11 +6,11 @@
 #define _DIFFWRAPPER_H
 
 #define  _GNU_SOURCE
-#include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <stdbool.h>
+#include <stdio.h>
 
     /* Represents single comparison. */
     struct block{
@@ -34,7 +34,7 @@
     /* Reads temp file from diff. */
     struct block *read_block(struct array_wrapper *wrapper);
 
-    /* Compares two specified files (as paths). */
+    /* Compares two specified files (as paths). Returns id of created block.*/
     int make_comparison(char *first, char *second, struct array_wrapper *wrapper);
 
     /* Compares all files specified by left and right arrays (as paths). */

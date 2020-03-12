@@ -66,11 +66,6 @@ int count_lines(char *path){
 }
 
 struct block *read_block(struct array_wrapper *wrapper){
-    if(wrapper->used >= wrapper->arr_size){
-        wrapper->arr = realloc(wrapper->arr, (wrapper->used+10)*sizeof(struct block *));
-        wrapper->arr_size = wrapper->used+10;
-    }
-
     int oper_index = count_lines(DIFF_OUT);
     struct block *b_ptr = create_block(oper_index);
     b_ptr->block_size = oper_index;
@@ -108,7 +103,6 @@ struct block *read_block(struct array_wrapper *wrapper){
 }
 
 int make_comparison(char *first, char *second, struct array_wrapper *wrapper){
-    // returns id of created block
     char *command = calloc((strlen(DIFF_CMD)+strlen(first)+strlen(SPACE)+strlen(second)+3+strlen(DIFF_OUT)), sizeof(char));
 
     strcpy(command, DIFF_CMD);
@@ -121,7 +115,14 @@ int make_comparison(char *first, char *second, struct array_wrapper *wrapper){
     system(command);
     free(command);
 
+    if(wrapper->used >= wrapper->arr_size){
+        wrapper->arr = realloc(wrapper->arr, (2*wrapper->used)*sizeof(struct block *));
+        wrapper->arr_size = 2*wrapper->used;
+    }
+
     wrapper->arr[wrapper->used++] = read_block(wrapper);   
+    system("rm diff_out.txt");
+
     return wrapper->used-1;
 }
 
