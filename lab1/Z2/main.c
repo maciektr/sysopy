@@ -2,16 +2,29 @@
 
 #include "../Z1/diffwrapper.h"
 
-int main(){
-    struct array_wrapper *ptr = create_array(10);
+int main(int argc, char **argv){
+    struct array_wrapper *array = NULL;
 
-    // make_comparison("a.txt", "b.txt", ptr);
-    char *left[] = {"a.txt", "b.txt"};
-    char *right[] = {"b.txt", "a.txt"};
-    compare_files(2,left, right, ptr);
-    printf("%d\n",count_operations(0, ptr));
-    remove_operation(1,ptr->arr[0]);
+    int n = 1;
+    while(n < argc){
+        if(strcmp(argv[n], "create_table") == 0){
+            array = create_array(atoi(argv[n+1]));
+            n+=2;
+        }else if(strcmp(argv[n], "compare_pairs") == 0){
+            while(++n < argc && strstr(argv[n], ":") ){
+                char *first = strtok(argv[n], ":");
+                char *second = strtok(NULL, ":");
+                make_comparison(first, second, array);
+            }
+        }else if(strcmp(argv[n], "remove_block") == 0){
+            remove_block_id(atoi(argv[n+1]), array);
+            n+=2;
+        }else if(strcmp(argv[n], "remove_operation") == 0){
+            remove_operation(atoi(argv[n+2]), array->arr[atoi(argv[n+1])]);
+            n+=3;
+        }
+    }
+    remove_array(array);
 
-    remove_array(ptr);
     return 0;
 }
