@@ -50,13 +50,14 @@ void compare_files(char *first, char *second, struct array_wrapper *wrapper){
     strcat(command, second);
     strcat(command, " > ");
     strcat(command, DIFF_OUT);
-    
+
     system(command);
     free(command);
 
-    // if(wrapper->used >= wrapper->arr_size){
-        //REALLOC
-    // }
+    if(wrapper->used >= wrapper->arr_size){
+        wrapper->arr = realloc(wrapper->arr, (wrapper->used+10)*sizeof(struct block *));
+        wrapper->arr_size = wrapper->used+10;
+    }
     
     FILE *file = fopen( DIFF_OUT , "r");
     assert(file);
@@ -91,7 +92,7 @@ void compare_files(char *first, char *second, struct array_wrapper *wrapper){
 
     
     fclose(file);
-    file = fopen( DIFF_OUT , "r");
+    file = fopen(DIFF_OUT , "r");
     oper_index = -1;
     
     while(getline(&line, &len, file) >= 0)
@@ -102,5 +103,4 @@ void compare_files(char *first, char *second, struct array_wrapper *wrapper){
 
     fclose(file);
     free(line);
-
 }
