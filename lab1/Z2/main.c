@@ -4,7 +4,7 @@
 
 int main(){
     struct array_wrapper *ptr = create_array(10);
-    compare_files("a.txt", "b.txt", ptr);
+    make_comparison("a.txt", "b.txt", ptr);
     remove_array(ptr);
     return 0;
 }

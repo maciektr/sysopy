@@ -41,44 +41,40 @@ void remove_array(struct array_wrapper *ptr){
     free(ptr->arr);
     free(ptr);
 }
-void compare_files(char *first, char *second, struct array_wrapper *wrapper){
-    char *command = calloc((strlen(DIFF_CMD)+strlen(first)+strlen(SPACE)+strlen(second)+3+strlen(DIFF_OUT)), sizeof(char));
 
-    strcpy(command, DIFF_CMD);
-    strcat(command, first);
-    strcat(command, SPACE);
-    strcat(command, second);
-    strcat(command, " > ");
-    strcat(command, DIFF_OUT);
+int count_lines(char *path){
+    FILE *file = fopen( path , "r");
+    assert(file);
+    
+    int result = 0;
+    char *line = NULL;
+    size_t len = 0;
 
-    system(command);
-    free(command);
+    while(getline(&line, &len, file) >= 0)
+        if(line[0]>='0' && line[0] <= '9')
+            result++;
 
+    free(line);
+    fclose(file);
+    return result;
+}
+
+struct block *read_block(struct array_wrapper *wrapper){
     if(wrapper->used >= wrapper->arr_size){
         wrapper->arr = realloc(wrapper->arr, (wrapper->used+10)*sizeof(struct block *));
         wrapper->arr_size = wrapper->used+10;
     }
+
+    int oper_index = count_lines(DIFF_OUT);
+    struct block *b_ptr = create_block(oper_index);
+    b_ptr->block_size = oper_index;
     
     FILE *file = fopen( DIFF_OUT , "r");
     assert(file);
 
+    size_t oper_len = 0;
     char *line = NULL;
     size_t len = 0;
-
-    int oper_index = 0;
-
-    while(getline(&line, &len, file) >= 0)
-        if(line[0]>='0' && line[0] <= '9')
-            oper_index++;
-    
-    wrapper->arr[wrapper->used++] = create_block(oper_index);
-    struct block *b_ptr = wrapper->arr[wrapper->used-1];
-    b_ptr->block_size = oper_index;
-
-    
-    fclose(file);
-    file = fopen( DIFF_OUT , "r");
-    size_t oper_len = 0;
 
     while(getline(&line, &len, file) >= 0){
         if(line[0]>='0' && line[0] <= '9'){
@@ -89,7 +85,6 @@ void compare_files(char *first, char *second, struct array_wrapper *wrapper){
         oper_len+=len;
     }
     b_ptr->operations[b_ptr->used++] = calloc((oper_len+1), sizeof(char));
-
     
     fclose(file);
     file = fopen(DIFF_OUT , "r");
@@ -103,4 +98,28 @@ void compare_files(char *first, char *second, struct array_wrapper *wrapper){
 
     fclose(file);
     free(line);
+    return b_ptr;
 }
+
+void make_comparison(char *first, char *second, struct array_wrapper *wrapper){
+    char *command = calloc((strlen(DIFF_CMD)+strlen(first)+strlen(SPACE)+strlen(second)+3+strlen(DIFF_OUT)), sizeof(char));
+
+    strcpy(command, DIFF_CMD);
+    strcat(command, first);
+    strcat(command, SPACE);
+    strcat(command, second);
+    strcat(command, " > ");
+    strcat(command, DIFF_OUT);
+
+    system(command);
+    free(command);
+
+    wrapper->arr[wrapper->used++] = read_block(wrapper);   
+}
+
+void compare_files(int files_count,char **left, char **right, struct array_wrapper *wrapper){
+    for(int i = 0; i<files_count; i++){
+        make_comparison(left[i], right[i], wrapper);
+    }
+}
+
