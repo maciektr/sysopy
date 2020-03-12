@@ -209,3 +209,4 @@ obj/
 .history
 
 # End of https://www.gitignore.io/api/c,c++,linux,cmake,clion+all,premake-gmake,visualstudiocode
+.vscode/
