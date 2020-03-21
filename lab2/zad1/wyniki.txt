@@ -1,0 +1,156 @@
+Measuring 1000 records of size 1
+Copying by lib
+user	0m0,001s
+sys	0m0,000s
+Sorting by lib
+user	0m0,022s
+sys	0m0,019s
+Copying by sys
+user	0m0,000s
+sys	0m0,003s
+Sorting by sys
+user	0m0,023s
+sys	0m0,017s
+Measuring 1000 records of size 4
+Copying by lib
+Sorting by lib
+user	0m0,000s
+sys	0m0,001s
+user	0m0,022s
+sys	0m0,036s
+Copying by sys
+user	0m0,000s
+sys	0m0,002s
+Sorting by sys
+user	0m0,035s
+sys	0m0,011s
+Measuring 1000 records of size 512
+Copying by lib
+user	0m0,000s
+sys	0m0,001s
+Sorting by lib
+user	0m0,028s
+sys	0m0,023s
+Copying by sys
+user	0m0,000s
+sys	0m0,003s
+Sorting by sys
+user	0m0,022s
+sys	0m0,030s
+Measuring 1000 records of size 1024
+Copying by lib
+user	0m0,000s
+sys	0m0,002s
+Sorting by lib
+user	0m0,027s
+sys	0m0,028s
+Copying by sys
+user	0m0,000s
+sys	0m0,003s
+Sorting by sys
+user	0m0,014s
+sys	0m0,030s
+Measuring 1000 records of size 4096
+Copying by lib
+user	0m0,002s
+sys	0m0,003s
+Sorting by lib
+user	0m0,028s
+sys	0m0,031s
+Copying by sys
+user	0m0,000s
+sys	0m0,007s
+Sorting by sys
+user	0m0,022s
+sys	0m0,038s
+Measuring 1000 records of size 8192
+Copying by lib
+user	0m0,002s
+sys	0m0,010s
+Sorting by lib
+user	0m0,024s
+sys	0m0,044s
+Copying by sys
+user	0m0,002s
+sys	0m0,005s
+Sorting by sys
+user	0m0,021s
+sys	0m0,050s
+Measuring 10000 records of size 1
+Copying by lib
+user	0m0,001s
+sys	0m0,000s
+Sorting by lib
+user	0m0,553s
+sys	0m0,362s
+Copying by sys
+user	0m0,008s
+sys	0m0,018s
+Sorting by sys
+user	0m0,756s
+sys	0m0,637s
+Measuring 10000 records of size 4
+Copying by lib
+user	0m0,001s
+sys	0m0,000s
+Sorting by lib
+user	0m0,400s
+sys	0m0,390s
+Copying by sys
+user	0m0,006s
+sys	0m0,020s
+Sorting by sys
+user	0m0,319s
+sys	0m0,352s
+Measuring 10000 records of size 512
+Copying by lib
+user	0m0,002s
+sys	0m0,006s
+Sorting by lib
+user	0m0,394s
+sys	0m0,390s
+Copying by sys
+user	0m0,005s
+sys	0m0,029s
+Sorting by sys
+user	0m0,362s
+sys	0m0,383s
+Measuring 10000 records of size 1024
+Copying by lib
+user	0m0,001s
+sys	0m0,014s
+Sorting by lib
+user	0m0,380s
+sys	0m0,413s
+Copying by sys
+user	0m0,009s
+sys	0m0,024s
+Sorting by sys
+user	0m0,317s
+sys	0m0,403s
+Measuring 10000 records of size 4096
+Copying by lib
+user	0m0,008s
+sys	0m0,045s
+Sorting by lib
+user	0m0,308s
+sys	0m0,447s
+Copying by sys
+user	0m0,006s
+sys	0m0,038s
+Sorting by sys
+user	0m0,310s
+sys	0m0,495s
+Measuring 10000 records of size 8192
+Copying by lib
+user	0m0,020s
+sys	0m0,110s
+Sorting by lib
+user	0m0,358s
+sys	0m0,800s
+Copying by sys
+user	0m0,008s
+sys	0m0,074s
+Sorting by sys
+user	0m0,312s
+sys	0m0,796s

@@ -28,17 +28,17 @@ char get_char(int index){
 void generate(char *name, int n, int size){
         int r = open("/dev/random", O_RDONLY);
         assert(r >= 0);
-        int f = open(name, O_WRONLY | O_CREAT | O_TRUNC);
+        int f = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0777);
         assert(f >= 0);
 
         char *buf = malloc(size);
         while(n--){
-            for(int i = 0; i<size-2; i++){
-                assert(read(r, buf+i, 1) >= 0);
+            assert(read(r, buf, size) >= 0);
+            for(int i = 0; i<size; i++){
                 *(buf+i) = get_char((int)*(buf+i));
             }
-            *(buf + size-2) ='\n';
-            *(buf + size-1) ='\0';
+            // *(buf + size-2) ='\n';
+            // *(buf + size-1) ='\0';
             assert(write(f,buf, size) >= 0);
         }
         free(buf);
@@ -49,7 +49,7 @@ void generate(char *name, int n, int size){
 void copy(char *first, char *second, int n, int size, bool sys){
     if(sys){
         int from = open(first, O_RDONLY);
-        int to = open(second, O_WRONLY | O_CREAT | O_TRUNC);
+        int to = open(second, O_WRONLY | O_CREAT | O_TRUNC, 0777);
         char *buf = malloc(size);
 
         while(n--){
@@ -91,7 +91,7 @@ void _sort(char *name, int p, int q, int size, bool sys){
             assert(lseek(file, i*size, SEEK_SET) >= 0);
             assert(read(file, buf, size) >= 0);
             // i <= pivot
-            if(strcmp(buf, pivot) < 0){
+            if(strncmp(buf, pivot,size) < 0){
                 if(i==k){
                     k++;
                     continue;
@@ -134,7 +134,7 @@ void _sort(char *name, int p, int q, int size, bool sys){
             assert(fseek(file, i*size, 0) >= 0);
             assert(fread(buf, sizeof(char), size, file) >= 0);
             // i <= pivot
-            if(strcmp(buf, pivot) < 0){
+            if(strncmp(buf, pivot, size) < 0){
                 if(i==k){
                     k++;
                     continue;
@@ -187,4 +187,5 @@ int main(int argc, char *argv[]){
         bool sys = strcmp(argv[6],"sys") == 0;
         copy(argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), sys);
     }
+    return 0;
 }

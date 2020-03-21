@@ -1,11 +1,13 @@
 # Makefile
 
-CC = gcc -std="c11" -Wall
+CC = gcc -std="c11" -Wall -O3
+FILE = sort.c
 
 main: 
-	$(CC) -static main.c -o main.out
+	$(CC) -static $(FILE) -o main.out
 
 debug: 
-	$(CC) -fsanitize=address -Wshadow main.c -o main.out
+	$(CC) -fsanitize=address -Wshadow $(FILE) -o main.out
 	
-
+test: main
+	bash time.sh > wyniki.txt
