@@ -26,7 +26,7 @@ int main(int argc, char **argv){
             while(++n < argc && strstr(argv[n], ":") ){
                 char *first = strtok(argv[n], ":");
                 char *second = strtok(NULL, ":");
-                int c = make_comparison(first, second, array);
+                make_comparison(first, second, array);
             }
 
         }else if(strcmp(argv[n], "count_operations") == 0){

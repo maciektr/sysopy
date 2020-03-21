@@ -1,6 +1,6 @@
 # Makefile
 
-CC = gcc -std="c11"
+CC = gcc -std="c11" -Wall
 LIB_PATH = ../Z1/
 LIB = diffwrapper
 
@@ -8,7 +8,7 @@ main:
 	make static
 
 debug: dynamic_lib
-	$(CC) -fsanitize=address -Wall -Wshadow main.c -L. -Wl,-rpath=. -l$(LIB) -o main.out
+	$(CC) -fsanitize=address  -Wshadow main.c -L. -Wl,-rpath=. -l$(LIB) -o main.out
 	
 static_lib: 
 	make -C $(LIB_PATH) static
