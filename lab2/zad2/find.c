@@ -14,6 +14,18 @@
 #include <time.h> 
 #include <ftw.h>
 
+struct time_arg{
+    int mtime;
+    int atime;
+
+    // Sign variables define type of limit:
+    // 0 - no limit
+    // 1 - exact (no sign in program argument)
+    // 2 - younger (- in argument)
+    // 3 - older (+ in argument)
+    char msign;
+    char asign;
+};
 
 void print_stat(const char *path, const char *name, const struct stat *buf);
 char *file_type(mode_t mode);
@@ -21,25 +33,15 @@ void assert_args(bool x);
 void print_usage();
 
 
-bool check_time(int mtime, int atime, const struct stat *buf){
+bool check_time(struct time_arg targ, const struct stat *buf){
     time_t now = time(NULL);
     int adiff = (int)difftime(now,buf->st_atime) / 3600 / 24;
     int mdiff = (int)difftime(now,buf->st_mtime) / 3600 / 24;
     
-    if(atime > 0 && atime > adiff)
-        return false;
-    if(atime < 0 && abs(atime) < adiff)
-        return false;
-    
-    if(mtime > 0 && mtime > mdiff)
-        return false;
-    if(mtime < 0 && abs(mtime) < mdiff)
-        return false;
-    
     return true;
 }
 
-int _search_dir(char path[], char *name, int mtime, int atime, int maxdepth){
+int _search_dir(char path[], char *name, struct time_arg targ, int maxdepth){
     if(maxdepth == -1)
         return 0;
 
@@ -63,13 +65,13 @@ int _search_dir(char path[], char *name, int mtime, int atime, int maxdepth){
         if(lstat(p, buf) == -1)
             continue;
 
-        if(strstr(dp->d_name, name) && check_time(mtime, atime, buf)){
+        if(strstr(dp->d_name, name) && check_time(targ, buf)){
             print_stat(p,dp->d_name,buf);
             res++;
         }
 
         if(!S_ISLNK(buf->st_mode) && S_ISDIR(buf->st_mode))
-            res += _search_dir(p,name,mtime,atime,maxdepth-1);
+            res += _search_dir(p,name,targ,maxdepth-1);
     }
     free(buf);
     closedir(dir);
@@ -77,7 +79,7 @@ int _search_dir(char path[], char *name, int mtime, int atime, int maxdepth){
 }
 
 
-int _search_nftw(char path[], char *name, int mtime, int atime, int maxdepth){
+int _search_nftw(char path[], char *name, struct time_arg targ, int maxdepth){
     int res = 0;
     
     int _process_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
@@ -89,7 +91,7 @@ int _search_nftw(char path[], char *name, int mtime, int atime, int maxdepth){
 
         const char *file = fpath + ftwbuf->base;
 
-        if(strstr(file, name) && check_time(mtime, atime, sb)){
+        if(strstr(file, name) && check_time(targ, sb)){
             print_stat(fpath,file,sb);
             res++;
         }
@@ -102,15 +104,15 @@ int _search_nftw(char path[], char *name, int mtime, int atime, int maxdepth){
     return res;
 }
 
-void find(char path[], char *name, int mtime, int atime, int maxdepth, bool nftw){
+void find(char path[], char *name, struct time_arg targ, int maxdepth, bool nftw){
     char absolute[PATH_MAX];
     assert(realpath(path,absolute) != NULL);
     int res = 0;
 
     if(nftw)
-        res = _search_nftw(absolute,name,mtime,atime,maxdepth);
+        res = _search_nftw(absolute,name,targ,maxdepth);
     else
-        res = _search_dir(absolute,name,mtime,atime,maxdepth);
+        res = _search_dir(absolute,name,targ,maxdepth);
 
     printf("Found total of %d files.\n", res);
 }
@@ -122,15 +124,16 @@ int main(int argc, char *argv[]){
         {"atime",   required_argument, 0,  'a' },
         {"maxdepth",   required_argument, 0,  'd' },
         {"nftw", no_argument, 0, 'n'},
-        // {"path",   required_argumen  , 0,  'p' },
         {0, 0, 0, 0}
     };      
 
     int long_index = 0;
     int opt = 0;
 
-    int mtime = 0;
-    int atime = 0;
+    struct time_arg targ;
+    targ.asign = 0;
+    targ.msign = 0;
+
     int maxdepth = -2;
     bool nftw = false;
 
@@ -140,11 +143,11 @@ int main(int argc, char *argv[]){
                 print_usage();
             case 'm': 
                 assert_args(optarg != NULL);
-                mtime = atoi(optarg);
+                targ.mtime = atoi(optarg);
                 break;
             case 'a': 
                 assert_args(optarg != NULL);
-                atime = atoi(optarg);
+                targ.atime = atoi(optarg);
                 break;
             case 'd': 
                 assert_args(optarg > 0);
@@ -172,7 +175,7 @@ int main(int argc, char *argv[]){
     }else if(optind < argc)
         strcpy(path,argv[optind]);
     
-    find(path, name, mtime, atime, maxdepth, nftw);
+    find(path, name, targ, maxdepth, nftw);
     return 0;
 }
 
@@ -181,8 +184,8 @@ void print_usage(){
     printf("Description: search for files in a directory hierarchy.\n");
     printf("Options:\n");
     printf("    --help - show usage. \n");
-    printf("    --mtime n - file was last modified n*24 hours ago. Negative n means at least, positive utmost.\n");
-    printf("    --atime n - file was last accessed n*24 hours ago. Negative n means at least, positive utmost.\n");
+    printf("    --mtime n - file was last modified n*24 hours ago. Negative n means younger, positive older.\n");
+    printf("    --atime n - file was last accessed n*24 hours ago. Negative n means younger, positive older.\n");
     printf("    --maxdepth n - descend  at  most  n  (a non-negative integer) levels.\n");
     printf("    --nftw - enforce nftw style implementation.\n");
     printf("\n");
