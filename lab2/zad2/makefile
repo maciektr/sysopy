@@ -5,8 +5,8 @@ FILE = find.c
 OUT = find.out
 
 main: 
-	$(CC) -static $(FILE) -o $(OUT)
+	$(CC) -static $(FILE) -D_XOPEN_SOURCE=500 -o $(OUT)
 
 debug: 
-	$(CC) -fsanitize=address -Wshadow $(FILE) -o $(OUT)
+	$(CC) -fsanitize=address -D_XOPEN_SOURCE=500 -Wshadow $(FILE) -o $(OUT)
 	
