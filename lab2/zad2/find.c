@@ -25,55 +25,50 @@ void print_stat(char *path, char *name, struct stat *buf){
     printf("Path: %s\n", path);
     printf("Links number: %d\n", (int)buf->st_nlink);
     printf("File type: %s\n", file_type(buf->st_mode));
-    printf("Size: %d\n", (int)buf->st_size);
+    printf("Size in bytes: %d\n", (int)buf->st_size);
     printf("Last access: %s",asctime(localtime(&buf->st_atime)));
     printf("Last modification: %s",asctime(localtime(&buf->st_mtime)));
     printf("\n");
-    /*
-    Ścieżka bezwzględna pliku,
-    Liczbę dowiązań
-    Rodzaj pliku 
-    Rozmiar w bajtach,
-    Datę ostatniego dostępu,
-    Datę ostatniej modyfikacji.
-    */
+}
+
+void _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
+    if(maxdepth == -1)
+        return;
+    DIR* dir = opendir(path);
+    struct dirent* dp;
+    struct stat *buf = malloc(sizeof(struct stat));
+
+    while((dp = readdir(dir)) != NULL){
+        if(strcmp(dp->d_name,".") == 0 || strcmp(dp->d_name,"..") == 0)
+            continue;
+
+        char p[PATH_MAX];
+        strcpy(p,path);
+        strcat(p,"/");
+        strcat(p,dp->d_name);
+            
+        assert(stat(p, buf) != -1);
+
+        if(strstr(dp->d_name, name))
+            print_stat(p,dp->d_name,buf);
+
+        if(S_ISDIR(buf->st_mode))
+            _search_stat(p,name,mtime,atime,maxdepth-1);
+    }
+
+    free(buf);
+    closedir(dir);
 }
 
 void find(char path[], char *name, int mtime, int atime, int maxdepth, bool nftw){
-    if(maxdepth == -1)
-        return;
+    char absolute[PATH_MAX];
+    assert(realpath(path,absolute) != NULL);
 
     if(nftw){
 
 
-    }else{
-        DIR* dir = opendir(path);
-        struct dirent* dp;
-        struct stat *buf = malloc(sizeof(struct stat));
-
-        while((dp = readdir(dir)) != NULL){
-            if(strcmp(dp->d_name,".") == 0 || strcmp(dp->d_name,"..") == 0)
-                continue;
-
-            char p[PATH_MAX];
-            strcpy(p,path);
-            strcat(p,"/");
-            strcat(p,dp->d_name);
-            
-            assert(stat(p, buf) != -1);
-
-            if(strstr(dp->d_name, name)){
-                print_stat(p,dp->d_name,buf);
-            }
-            if(S_ISDIR(buf->st_mode)){
-                find(p,name,mtime,atime,maxdepth-1,nftw);
-            }
-        }
-
-        free(buf);
-        closedir(dir);
-    }
-
+    }else
+        _search_stat(absolute,name,mtime,atime,maxdepth);
 }
 
 int main(int argc, char *argv[]){
@@ -136,7 +131,6 @@ int main(int argc, char *argv[]){
     // if(path[0] != '/'){
     // }
 
-
     find(path, name, mtime, atime, maxdepth, nftw);
 
     return 0;
@@ -150,7 +144,7 @@ void print_usage(){
     printf("    --mtime n - file was last modified n*24 hours ago. Negative n means at least, positive utmost.\n");
     printf("    --atime n - file was last accessed n*24 hours ago. Negative n means at least, positive utmost.\n");
     printf("    --maxdepth n - descend  at  most  n  (a non-negative integer) levels.\n");
-    printf("    --nftw - enforce nftw style implementation.")
+    printf("    --nftw - enforce nftw style implementation.");
 }
 
 void assert_args(bool x){
