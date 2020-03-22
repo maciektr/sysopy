@@ -155,15 +155,16 @@ int main(int argc, char *argv[]){
     char path[PATH_MAX];
     path[0] = '.';
     path[1] = '\0';
-    char *name = NULL;
+    char *name = "\0";
 
-    if(optind+1 < argc){
+    if(optind + 2 < argc)
+        assert_args(false);
+
+    if(optind + 1 < argc){
         strcpy(path,argv[optind]);
         name = argv[optind+1];
     }else if(optind < argc)
-        name = argv[optind];
-    else
-        assert_args(false);
+        strcpy(path,argv[optind]);
     
     find(path, name, mtime, atime, maxdepth, nftw);
     return 0;
@@ -177,7 +178,8 @@ void print_usage(){
     printf("    --mtime n - file was last modified n*24 hours ago. Negative n means at least, positive utmost.\n");
     printf("    --atime n - file was last accessed n*24 hours ago. Negative n means at least, positive utmost.\n");
     printf("    --maxdepth n - descend  at  most  n  (a non-negative integer) levels.\n");
-    printf("    --nftw - enforce nftw style implementation.");
+    printf("    --nftw - enforce nftw style implementation.\n");
+    printf("\n");
 }
 
 void assert_args(bool trigger){
