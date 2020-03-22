@@ -44,6 +44,9 @@ int _search_dir(char path[], char *name, int mtime, int atime, int maxdepth){
         return 0;
 
     DIR* dir = opendir(path);
+    if(dir == NULL)
+        return 0;
+
     struct dirent* dp;
     struct stat *buf = malloc(sizeof(struct stat));
     
@@ -56,8 +59,8 @@ int _search_dir(char path[], char *name, int mtime, int atime, int maxdepth){
         strcpy(p,path);
         strcat(p,"/");
         strcat(p,dp->d_name);
-            
-        if(stat(p, buf) == -1)
+
+        if(lstat(p, buf) == -1)
             continue;
 
         if(strstr(dp->d_name, name) && check_time(mtime, atime, buf)){
@@ -78,7 +81,10 @@ int _search_nftw(char path[], char *name, int mtime, int atime, int maxdepth){
     int res = 0;
     
     int _process_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
-        if((maxdepth >= 0 && ftwbuf->level > maxdepth) || typeflag == FTW_NS)
+        if((maxdepth >= 0 && ftwbuf->level > maxdepth) 
+            || typeflag == FTW_NS
+            || strcmp(path, fpath) == 0
+          )
             return 0;
 
         const char *file = fpath + ftwbuf->base;
