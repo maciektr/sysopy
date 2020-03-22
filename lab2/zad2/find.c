@@ -41,16 +41,16 @@ bool check_time(struct time_arg targ, const struct stat *buf){
     
     if(targ.asign == 1 && adiff != targ.atime)
         return false;   
-    if(targ.asign == 2 && adiff < targ.atime)
+    if(targ.asign == 2 && adiff >= targ.atime)
         return false; 
-    if(targ.asign == 3 && adiff > targ.atime)
+    if(targ.asign == 3 && adiff <= targ.atime)
         return false; 
 
     if(targ.msign == 1 && mdiff != targ.mtime)
         return false; 
-    if(targ.msign == 2 && mdiff < targ.mtime)
+    if(targ.msign == 2 && mdiff >= targ.mtime)
         return false; 
-    if(targ.msign == 3 && mdiff > targ.mtime)
+    if(targ.msign == 3 && mdiff <= targ.mtime)
         return false; 
     
     return true;
@@ -110,7 +110,7 @@ int _search_nftw(char path[], char *name, struct time_arg targ, int maxdepth){
         const char *file = fpath + ftwbuf->base;
 
         if(strstr(file, name) && check_time(targ, sb)){
-            print_stat(fpath,file,sb);
+            print_stat(fpath,file,sb); 
             res++;
         }
         
