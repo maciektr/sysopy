@@ -15,6 +15,13 @@ debug_fast:
 
 make test: main
 	find /etc -mtime 0  2> /dev/null | wc -l
+	@echo ""
 	./$(OUT) -mtime 0 /etc | tail -n 1
+	@echo ""
+	./$(OUT) -nftw -mtime 0 /etc | tail -n 1
+	@echo ""
 	find /usr -atime -7 -maxdepth 2 2> /dev/null | wc -l
+	@echo ""
 	./$(OUT) -atime -7 -maxdepth 2 /usr | tail -n 1
+	@echo ""
+	./$(OUT) -nftw -atime -7 -maxdepth 2 /usr | tail -n 1
