@@ -103,7 +103,7 @@ int _search_nftw(char path[], char *name, struct time_arg targ, int maxdepth){
         
         if((maxdepth >= 0 && ftwbuf->level > maxdepth) 
             || typeflag == FTW_NS
-            || strcmp(path, fpath) == 0
+            // || strcmp(path, fpath) == 0
           )
             return 0;
     
@@ -128,9 +128,23 @@ void find(char path[], char *name, struct time_arg targ, int maxdepth, bool nftw
     int res = 0;
 
     if(nftw)
-        res = _search_nftw(absolute,name,targ,maxdepth);
-    else
-        res = _search_dir(absolute,name,targ,maxdepth);
+        res += _search_nftw(absolute,name,targ,maxdepth);
+    else{
+        int len = strlen(absolute);
+        while(absolute[--len] != '/');
+        char *file = malloc(strlen(absolute) - len + 2);
+        strcpy(file, absolute+len+1);
+        struct stat *buf = malloc(sizeof(struct stat));
+
+        if(lstat(absolute, buf) != -1 && strstr(file, name) && check_time(targ,buf)){
+            print_stat(absolute,file,buf);
+            res++;
+        }
+
+        free(file);
+        free(buf);
+        res += _search_dir(absolute,name,targ,maxdepth);
+    }
 
     printf("Found total of %d files.\n", res);
 }
