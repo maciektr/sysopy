@@ -12,14 +12,16 @@
 #include <fcntl.h> 
 #include <stdio.h> 
 #include <time.h> 
+#include <ftw.h>
 
-void print_stat(char *path, char *name, struct stat *buf);
+
+void print_stat(const char *path, const char *name, const struct stat *buf);
 char *file_type(mode_t mode);
 void assert_args(bool x);
 void print_usage();
 
 
-bool check_time(int mtime, int atime, struct stat *buf){
+bool check_time(int mtime, int atime, const struct stat *buf){
     time_t now = time(NULL);
     int adiff = (int)difftime(now,buf->st_atime) / 3600 / 24;
     int mdiff = (int)difftime(now,buf->st_mtime) / 3600 / 24;
@@ -37,7 +39,7 @@ bool check_time(int mtime, int atime, struct stat *buf){
     return true;
 }
 
-int _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
+int _search_dir(char path[], char *name, int mtime, int atime, int maxdepth){
     if(maxdepth == -1)
         return 0;
 
@@ -55,7 +57,8 @@ int _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
         strcat(p,"/");
         strcat(p,dp->d_name);
             
-        assert(stat(p, buf) != -1);
+        if(stat(p, buf) == -1)
+            continue;
 
         if(strstr(dp->d_name, name) && check_time(mtime, atime, buf)){
             print_stat(p,dp->d_name,buf);
@@ -63,10 +66,33 @@ int _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
         }
 
         if(!S_ISLNK(buf->st_mode) && S_ISDIR(buf->st_mode))
-            res += _search_stat(p,name,mtime,atime,maxdepth-1);
+            res += _search_dir(p,name,mtime,atime,maxdepth-1);
     }
     free(buf);
     closedir(dir);
+    return res;
+}
+
+
+int _search_nftw(char path[], char *name, int mtime, int atime, int maxdepth){
+    int res = 0;
+    
+    int _process_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
+        if((maxdepth >= 0 && ftwbuf->level > maxdepth) || typeflag == FTW_NS)
+            return 0;
+
+        const char *file = fpath + ftwbuf->base;
+
+        if(strstr(file, name) && check_time(mtime, atime, sb)){
+            print_stat(fpath,file,sb);
+            res++;
+        }
+        
+        return 0;
+    };
+
+    assert(nftw(path, _process_file, 30, FTW_PHYS) != -1);
+    
     return res;
 }
 
@@ -75,11 +101,10 @@ void find(char path[], char *name, int mtime, int atime, int maxdepth, bool nftw
     assert(realpath(path,absolute) != NULL);
     int res = 0;
 
-    if(nftw){
-
-
-    }else
-        res = _search_stat(absolute,name,mtime,atime,maxdepth);
+    if(nftw)
+        res = _search_nftw(absolute,name,mtime,atime,maxdepth);
+    else
+        res = _search_dir(absolute,name,mtime,atime,maxdepth);
 
     printf("Found total of %d files.\n", res);
 }
@@ -178,7 +203,7 @@ char *file_type(mode_t mode){
     return "file";
 }
 
-void print_stat(char *path, char *name, struct stat *buf){
+void print_stat(const char *path, const char *name, const struct stat *buf){
     printf("Found: %s\n", name);
     printf("Path: %s\n", path);
     printf("Links number: %d\n", (int)buf->st_nlink);
