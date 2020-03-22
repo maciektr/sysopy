@@ -1,10 +1,9 @@
+#include <linux/limits.h>
 #include <sys/types.h> 
 #include <sys/stat.h>
 #include <stdbool.h> 
 #include <stdlib.h>
 #include <string.h>
-#include <linux/limits.h>
-#include <sys/stat.h>
 #include <assert.h>
 #include <getopt.h>
 #include <unistd.h> 
@@ -14,30 +13,39 @@
 #include <stdio.h> 
 #include <time.h> 
 
-
+void print_stat(char *path, char *name, struct stat *buf);
+char *file_type(mode_t mode);
 void assert_args(bool x);
 void print_usage();
-char *file_type(mode_t mode);
 
 
-void print_stat(char *path, char *name, struct stat *buf){
-    printf("Found: %s\n", name);
-    printf("Path: %s\n", path);
-    printf("Links number: %d\n", (int)buf->st_nlink);
-    printf("File type: %s\n", file_type(buf->st_mode));
-    printf("Size in bytes: %d\n", (int)buf->st_size);
-    printf("Last access: %s",asctime(localtime(&buf->st_atime)));
-    printf("Last modification: %s",asctime(localtime(&buf->st_mtime)));
-    printf("\n");
+bool check_time(int mtime, int atime, struct stat *buf){
+    time_t now = time(NULL);
+    int adiff = (int)difftime(now,buf->st_atime) / 3600 / 24;
+    int mdiff = (int)difftime(now,buf->st_mtime) / 3600 / 24;
+    
+    if(atime > 0 && atime > adiff)
+        return false;
+    if(atime < 0 && abs(atime) < adiff)
+        return false;
+    
+    if(mtime > 0 && mtime > mdiff)
+        return false;
+    if(mtime < 0 && abs(mtime) < mdiff)
+        return false;
+    
+    return true;
 }
 
-void _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
+int _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
     if(maxdepth == -1)
-        return;
+        return 0;
+
     DIR* dir = opendir(path);
     struct dirent* dp;
     struct stat *buf = malloc(sizeof(struct stat));
-
+    
+    int res = 0;
     while((dp = readdir(dir)) != NULL){
         if(strcmp(dp->d_name,".") == 0 || strcmp(dp->d_name,"..") == 0)
             continue;
@@ -49,26 +57,31 @@ void _search_stat(char path[], char *name, int mtime, int atime, int maxdepth){
             
         assert(stat(p, buf) != -1);
 
-        if(strstr(dp->d_name, name))
+        if(strstr(dp->d_name, name) && check_time(mtime, atime, buf)){
             print_stat(p,dp->d_name,buf);
+            res++;
+        }
 
-        if(S_ISDIR(buf->st_mode))
-            _search_stat(p,name,mtime,atime,maxdepth-1);
+        if(!S_ISLNK(buf->st_mode) && S_ISDIR(buf->st_mode))
+            res += _search_stat(p,name,mtime,atime,maxdepth-1);
     }
-
     free(buf);
     closedir(dir);
+    return res;
 }
 
 void find(char path[], char *name, int mtime, int atime, int maxdepth, bool nftw){
     char absolute[PATH_MAX];
     assert(realpath(path,absolute) != NULL);
+    int res = 0;
 
     if(nftw){
 
 
     }else
-        _search_stat(absolute,name,mtime,atime,maxdepth);
+        res = _search_stat(absolute,name,mtime,atime,maxdepth);
+
+    printf("Found total of %d files.\n", res);
 }
 
 int main(int argc, char *argv[]){
@@ -122,17 +135,12 @@ int main(int argc, char *argv[]){
     if(optind+1 < argc){
         strcpy(path,argv[optind]);
         name = argv[optind+1];
-    }else if(optind < argc){
+    }else if(optind < argc)
         name = argv[optind];
-    }else{
+    else
         assert_args(false);
-    }
     
-    // if(path[0] != '/'){
-    // }
-
     find(path, name, mtime, atime, maxdepth, nftw);
-
     return 0;
 }
 
@@ -147,8 +155,8 @@ void print_usage(){
     printf("    --nftw - enforce nftw style implementation.");
 }
 
-void assert_args(bool x){
-    if(x) 
+void assert_args(bool trigger){
+    if(trigger) 
         return;
     print_usage(); 
     exit(EXIT_FAILURE);
@@ -168,4 +176,15 @@ char *file_type(mode_t mode){
     if(S_ISCHR(mode))
         return "char dev";
     return "file";
+}
+
+void print_stat(char *path, char *name, struct stat *buf){
+    printf("Found: %s\n", name);
+    printf("Path: %s\n", path);
+    printf("Links number: %d\n", (int)buf->st_nlink);
+    printf("File type: %s\n", file_type(buf->st_mode));
+    printf("Size in bytes: %d\n", (int)buf->st_size);
+    printf("Last access: %s",asctime(localtime(&buf->st_atime)));
+    printf("Last modification: %s",asctime(localtime(&buf->st_mtime)));
+    printf("\n");
 }
