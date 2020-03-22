@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include <unistd.h> 
 #include <dirent.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <fcntl.h> 
 #include <stdio.h> 
@@ -38,11 +39,25 @@ bool check_time(struct time_arg targ, const struct stat *buf){
     int adiff = (int)difftime(now,buf->st_atime) / 3600 / 24;
     int mdiff = (int)difftime(now,buf->st_mtime) / 3600 / 24;
     
+    if(targ.asign == 1 && adiff != targ.atime)
+        return false;   
+    if(targ.asign == 2 && adiff < targ.atime)
+        return false; 
+    if(targ.asign == 3 && adiff > targ.atime)
+        return false; 
+
+    if(targ.msign == 1 && mdiff != targ.mtime)
+        return false; 
+    if(targ.msign == 2 && mdiff < targ.mtime)
+        return false; 
+    if(targ.msign == 3 && mdiff > targ.mtime)
+        return false; 
+    
     return true;
 }
 
 int _search_dir(char path[], char *name, struct time_arg targ, int maxdepth){
-    if(maxdepth == -1)
+    if(maxdepth == 0)
         return 0;
 
     DIR* dir = opendir(path);
@@ -83,12 +98,15 @@ int _search_nftw(char path[], char *name, struct time_arg targ, int maxdepth){
     int res = 0;
     
     int _process_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
+        if(maxdepth >= 0 && ftwbuf->level > maxdepth && typeflag == FTW_D)
+            return FTW_SKIP_SUBTREE;
+        
         if((maxdepth >= 0 && ftwbuf->level > maxdepth) 
             || typeflag == FTW_NS
             || strcmp(path, fpath) == 0
           )
             return 0;
-
+    
         const char *file = fpath + ftwbuf->base;
 
         if(strstr(file, name) && check_time(targ, sb)){
@@ -99,7 +117,7 @@ int _search_nftw(char path[], char *name, struct time_arg targ, int maxdepth){
         return 0;
     };
 
-    assert(nftw(path, _process_file, 30, FTW_PHYS) != -1);
+    assert(nftw(path, _process_file, 30, FTW_PHYS | FTW_ACTIONRETVAL) != -1);
     
     return res;
 }
@@ -143,11 +161,23 @@ int main(int argc, char *argv[]){
                 print_usage();
             case 'm': 
                 assert_args(optarg != NULL);
-                targ.mtime = atoi(optarg);
+                if(optarg[0] == '+')
+                    targ.msign = 3;
+                else if(optarg[0] == '-')
+                    targ.msign = 2;
+                else
+                    targ.msign = 1;                
+                targ.mtime = abs(atoi(optarg));
                 break;
             case 'a': 
                 assert_args(optarg != NULL);
-                targ.atime = atoi(optarg);
+                if(optarg[0] == '+')
+                    targ.asign = 3;
+                else if(optarg[0] == '-')
+                    targ.asign = 2;
+                else
+                    targ.asign = 1;
+                targ.atime = abs(atoi(optarg));
                 break;
             case 'd': 
                 assert_args(optarg > 0);

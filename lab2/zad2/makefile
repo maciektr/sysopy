@@ -1,6 +1,6 @@
 # Makefile
 
-CC = gcc -std="c11" -O2 -D_XOPEN_SOURCE=700
+CC = gcc -std="c11" -O2 -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
 FILE = find.c
 OUT = find.out
 
