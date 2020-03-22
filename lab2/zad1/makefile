@@ -11,3 +11,6 @@ debug:
 	
 test: main
 	bash time.sh > wyniki.txt
+
+clean:
+	rm -f $(OUT)

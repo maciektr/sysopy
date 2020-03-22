@@ -13,6 +13,9 @@ debug:
 debug_fast:
 	$(CC) -Wall  -Wshadow $(FILE) -o $(OUT)
 
+clean:
+	rm -f $(OUT)
+
 make test: main
 	find /etc -mtime 0  2> /dev/null | wc -l
 	@echo ""
