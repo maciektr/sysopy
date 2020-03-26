@@ -16,6 +16,7 @@
      _a < _b ? _a : _b; })
 
 int count_lines(char *path);
+int n_collumns(char *path);
 
 struct Task{
     char *first;

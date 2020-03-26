@@ -14,6 +14,19 @@ int count_lines(char *path){
     return res;
 }
 
+int n_collumns(char *path){
+    FILE *file = fopen(path, "r");
+    int res = 0;
+    char c;
+    while((c = fgetc(file)) != EOF){
+        if(c == ' ')
+            res++;
+        else if(c == '\n')
+            break;
+    }
+    fclose(file);
+    return res+1;
+}
 
 void free_tasks(Task *tasks, int n){
     while(--n >= 0){
