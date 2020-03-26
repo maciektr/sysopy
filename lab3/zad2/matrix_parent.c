@@ -34,23 +34,12 @@ int read_tasks(char *path, Task *tasks, int n_workers){
     int k = 0;
 
     while(getline(&line, &len, list) >= 0){
-        char *matrix[3];
-        for(int i = 0; i<3; i++)
-            matrix[i] = malloc(len);
-
-        int b = 0, e = 0;
-        for(int i = 0; i<3; i++){
-            while(e < len && line[e]!=' ')
-                e++;
-            strncpy(matrix[i], line+b, e-b+1);
-            matrix[i][e-b+1] = '\0';
-            e++;
-            b = e;
-        }
-
-        tasks[k].first = matrix[0];
-        tasks[k].second = matrix[1];
-        tasks[k].result = matrix[2];
+        tasks[k].first = malloc(len);
+        strcpy(tasks[k].first, strtok(line, " "));
+        tasks[k].second = malloc(len);
+        strcpy(tasks[k].second, strtok(NULL, " "));
+        tasks[k].result = malloc(len);
+        strcpy(tasks[k].result, strtok(NULL, " "));
 
         int n_cols = count_cols(tasks[k].second);
         assert(n_cols > 0);
