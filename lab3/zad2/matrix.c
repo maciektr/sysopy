@@ -13,17 +13,32 @@
 #include "matrix_parent.h"
 #include "matrix_worker.h"
 
+enum result_mode{common, separate};
+typedef enum result_mode res_mod;
+
 void assert_args(bool trigger);
 void print_usage();
 
-int worker(int timeout, Task *tasks, int n_tasks, res_mod mode){
+int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
     clock_t begin = clock();
     int res = 0;
     while(true){
         if((clock() - begin) / CLOCKS_PER_SEC > timeout)
             return res;
         
-        
+        for(int task_id = 0; task_id < n_tasks; task_id++){
+            if((clock() - begin) / CLOCKS_PER_SEC > timeout)
+                return res;
+
+            int n_col = n_collumns(tasks[task_id].second);
+            if(part * tasks[task_id].cols_per_worker > n_col)
+                continue;
+            
+            int col_start = part * tasks[task_id].cols_per_worker;
+            int real_part = min(col_start + tasks[task_id].cols_per_worker, n_col) - col_start;
+            
+            
+        }
     }
     free_tasks(tasks, n_tasks);
     return res;
@@ -31,12 +46,13 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode){
 
 int main(int argc, char *argv[]){
     assert_args(argc == 5);
-    char *file_path = argv[1];
-    Task *tasks = NULL;
-    int n_tasks = read_tasks(file_path, tasks);
 
     int n_workers = atoi(argv[2]);
     assert_args(n_workers > 0);
+
+    char *file_path = argv[1];
+    Task *tasks = NULL;
+    int n_tasks = read_tasks(file_path, tasks, n_workers);
 
     int timeout = atoi(argv[3]);
     assert_args(timeout > 0);
@@ -49,7 +65,7 @@ int main(int argc, char *argv[]){
         workers[i] = fork();
         if(workers[i] == 0){
             free(workers);
-            return worker(timeout, tasks, n_tasks, mode);
+            return worker(timeout, tasks, n_tasks, mode, i);
         }
     }
 
@@ -64,22 +80,6 @@ int main(int argc, char *argv[]){
     free(workers);
     return 0;
 }
-
-/*
-int n_collumns(char *path){
-    FILE *file = fopen(path, "r");
-    int res = 0;
-    char c;
-    while((c = fgetc(file)) != EOF){
-        if(c == ' ')
-            res++;
-        else if(c == '\n')
-            break;
-    }
-    fclose(file);
-    return res+1;
-}
-*/
 
 void print_usage(){
     /*
