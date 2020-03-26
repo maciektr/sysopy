@@ -37,7 +37,7 @@ void free_tasks(Task *tasks, int n){
     free(tasks);
 }
 
-int read_tasks(char *path, Task *tasks){
+int read_tasks(char *path, Task *tasks, int n_workers){
     int n = count_lines(path);
     tasks = malloc(n*sizeof(Task));
 
@@ -65,6 +65,11 @@ int read_tasks(char *path, Task *tasks){
         tasks[k].first = matrix[0];
         tasks[k].second = matrix[1];
         tasks[k].result = matrix[2];
+
+        int n_cols = n_collumns(tasks[k].second);
+        assert(n_cols > 0);
+        n_cols += n_workers - n_cols%n_workers;
+        tasks[k].cols_per_worker = max(n_cols / n_workers,1);
         k++;
     }
     fclose(list);

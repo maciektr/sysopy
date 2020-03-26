@@ -22,12 +22,10 @@ struct Task{
     char *first;
     char *second; 
     char *result;
+    int cols_per_worker;
 };
 typedef struct Task Task;
 void free_tasks(Task *tasks, int n);
-int read_tasks(char *path, Task *tasks);
-
-enum result_mode{common, separate};
-typedef enum result_mode res_mod;
+int read_tasks(char *path, Task *tasks, int n_workers);
 
 #endif
