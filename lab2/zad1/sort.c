@@ -7,7 +7,6 @@
 #include <unistd.h> 
 #include <stdio.h>
 #include <fcntl.h> 
-#include <stdio.h>
 
 char get_char(int index){
     const int N_LATIN = (int)'Z' - (int)'A';
