@@ -101,3 +101,28 @@ int count_rows(char *path){
     free(resp);
     return res;
 }
+
+Matrix *alloc_matrix(int n_rows, int n_cols){
+    Matrix *result = malloc(sizeof(Matrix));
+    result->n_rows = n_rows;
+    result->n_cols = n_cols;
+    result->matrix = malloc(result->n_rows * sizeof(int *));
+    for(int i = 0; i < result->n_rows; i++)
+        result->matrix[i] = calloc(result->n_cols, sizeof(int));
+    return result;
+}
+
+Matrix *multiply_matrices(Matrix *first, Matrix *second){
+    if(first->n_cols != second->n_rows)
+        return NULL;
+    Matrix *result = alloc_matrix(first->n_rows, second->n_cols);
+    
+    for(int x = 0; x < result->n_rows; x++)
+        for(int y = 0; y < result->n_cols; y++){
+            result->matrix[x][y] = 0;
+            for(int i = 0; i < second->n_rows; i++)
+                result->matrix[x][y] += first->matrix[x][i] * second->matrix[i][y];
+        }
+
+    return result;
+}

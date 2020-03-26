@@ -14,7 +14,10 @@ struct Matrix{
     int n_cols;
 };
 typedef struct Matrix Matrix;
+
 Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max);
+Matrix *multiply_matrices(Matrix *first, Matrix *second);
+Matrix *alloc_matrix(int n_rows, int n_cols);
 Matrix *load_whole(char *path);
 void free_matrix(Matrix *ptr);
 
