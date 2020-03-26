@@ -30,14 +30,15 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
             if((clock() - begin) / CLOCKS_PER_SEC > timeout)
                 return res;
 
-            int n_col = n_collumns(tasks[task_id].second);
+            int n_col = count_cols(tasks[task_id].second);
             if(part * tasks[task_id].cols_per_worker > n_col)
                 continue;
             
             int col_start = part * tasks[task_id].cols_per_worker;
             int real_part = min(col_start + tasks[task_id].cols_per_worker, n_col) - col_start;
-            
-            
+
+            Matrix *first = load_whole(tasks[task_id].first);
+            Matrix *second = load_part(tasks[task_id].second, col_start, col_start+real_part, 0, -1);
         }
     }
     free_tasks(tasks, n_tasks);

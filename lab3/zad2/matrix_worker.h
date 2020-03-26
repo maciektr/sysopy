@@ -6,6 +6,8 @@
 #include <string.h>
 #include <assert.h>
 
+int count_rows(char *path);
+
 struct Matrix{
     int **matrix;
     int n_rows;

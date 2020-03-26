@@ -15,8 +15,8 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
+int count_cols(char *path);
 int count_lines(char *path);
-int n_collumns(char *path);
 
 struct Task{
     char *first;

@@ -1,6 +1,11 @@
 #include "matrix_worker.h"
 
 Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max){
+    if(row_max == -1){
+        row_min = 0; 
+        row_max = count_rows(path);
+    }
+
     assert(row_min <= row_max);
     assert(col_min <= col_max);
 
@@ -81,4 +86,18 @@ void free_matrix(Matrix *ptr){
     while(--ptr->n_rows)
         free(ptr->matrix[ptr->n_rows]);
     free(ptr);
+}
+
+int count_rows(char *path){
+    FILE *file = fopen(path, "r");
+    int res = 0;
+
+    char *resp = NULL;
+    size_t len = 0;
+    while(getline(&resp, &len, file) != -1)
+        res++;
+
+    fclose(file);
+    free(resp);
+    return res;
 }
