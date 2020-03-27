@@ -5,7 +5,6 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
         row_min = 0; 
         row_max = count_rows(path);
     }
-
     assert(row_min <= row_max);
     assert(col_min <= col_max);
 
@@ -35,26 +34,18 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
             continue;
         }else if(act_row >= row_max)
             break;
-
         char *pch = strtok(line, " \n");
         while(pch != NULL){
-            if(act_col < col_min){
-                act_col++;
-                continue;
-            }else if(act_col >= col_max)
+            if(act_col > col_max)
                 break;
-            
-            // printf("NEMB: %d : %d | %s\n",mat_row, mat_col, pch);
-            matrix[mat_row][mat_col++] = atoi(pch);
-
+            if(act_col >= col_min)
+                matrix[mat_row][mat_col++] = atoi(pch);
             act_col++;
             pch = strtok(NULL, " \n");
         }
-
         act_row++;
         mat_row++;
-        act_col -= mat_col;
-        mat_col = 0; 
+        mat_col = act_col = 0; 
     }
     
     free(line);
@@ -129,12 +120,6 @@ void print_matrix(Matrix *matrix){
 }
 
 Matrix *multiply_matrices(Matrix *first, Matrix *second){
-    // puts("FIRST");
-    // print_matrix(first);
-    // puts("SECOND");
-    // print_matrix(second);
-    // puts("----");
-
     if(first->n_cols != second->n_rows)
         return NULL;
     Matrix *result = alloc_matrix(first->n_rows, second->n_cols);
@@ -147,4 +132,75 @@ Matrix *multiply_matrices(Matrix *first, Matrix *second){
         }
 
     return result;
+}
+
+void fprint_matrix(char *res_file_name, Matrix *matrix, int col_start){
+    FILE *res_file = fopen(res_file_name, "r");
+    assert(res_file);
+    flock(fileno(res_file), LOCK_EX);
+
+    char *line = NULL;
+    size_t len = 0;
+
+    char tmp_file_name[33];
+    sprintf(tmp_file_name, ".runtime/.%dtmp", (int)getpid());
+    FILE *tmp_res_f = fopen(tmp_file_name, "w");
+    assert(tmp_res_f);
+
+    int act_row = 0, act_col = 0; 
+    while((getline(&line, &len, res_file)) != -1&& act_row < matrix->n_rows){
+        char *tmp_res_line = malloc(len + (matrix->n_cols * 12 * 2));
+        assert(tmp_res_line);
+
+        char *pch = strtok(line, " \n");
+        if(pch != NULL){
+            strcpy(tmp_res_line, pch);
+            strcat(tmp_res_line, " ");
+            act_col++;
+        }
+        while((pch = strtok(NULL, " \n"))!= NULL && act_col < col_start){
+            strcat(tmp_res_line, pch);
+            strcat(tmp_res_line, " ");
+            act_col++;
+        }
+        for(int i = 0; i < matrix->n_cols; i++){
+            char snumb[11];
+            sprintf(snumb, "%d ", matrix->matrix[act_row][i]);
+            strcat(tmp_res_line, snumb);
+        }
+        while(pch != NULL){
+            strcat(tmp_res_line, pch);
+            strcat(tmp_res_line, " \n");
+            act_col++;
+            pch = strtok(NULL, " \n");
+        }
+        // printf("Will print: |%s\n", tmp_res_line);
+        fprintf(tmp_res_f, "%s\n", tmp_res_line);
+
+        free(tmp_res_line);
+        act_row++;
+        act_col = 0; 
+    }      
+    while(act_row < matrix->n_rows){
+        while(act_col++ < col_start)
+            fputc(' ',tmp_res_f);
+        for(int i = 0; i < matrix->n_cols; i++)
+            fprintf(tmp_res_f, "%d ", matrix->matrix[act_row][i]);
+        act_col = 0; 
+        act_row++;
+        fputc('\n', tmp_res_f);
+    }
+
+    fclose(tmp_res_f);    
+    fclose(res_file);
+    tmp_res_f = fopen(tmp_file_name, "r");
+    res_file = fopen(res_file_name, "w");
+
+    while(getline(&line, &len, tmp_res_f) != -1)
+        fputs(line,res_file);
+
+    flock(fileno(res_file), LOCK_UN);
+    fclose(res_file);
+    fclose(tmp_res_f);
+    free(line);
 }

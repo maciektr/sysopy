@@ -64,80 +64,9 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
         // puts("result");
         // print_matrix(result);
 
-        if(mode == common){
-            // printf("Proc %d otwiera res\n", (int)getpid());
-            char *res_file_name = tasks[task_id].result;
-            FILE *res_file = fopen(res_file_name, "r");
-            assert(res_file);
-            flock(fileno(res_file), LOCK_EX);
-
-            char *line = NULL;
-            size_t len = 0;
-
-            char tmp_file_name[33];
-            sprintf(tmp_file_name, ".runtime/.%dtmp", (int)getpid());
-            FILE *tmp_res_f = fopen(tmp_file_name, "w");
-            assert(tmp_res_f);
-
-            int act_row = 0, act_col = 0; 
-            while((getline(&line, &len, res_file)) != -1){// && act_row < result->n_rows){
-                char *tmp_res_line = malloc(len + (result->n_cols * 12 * 2));
-                assert(tmp_res_line);
-
-                char *pch = strtok(line, " \n");
-                if(pch != NULL){
-                    strcpy(tmp_res_line, pch);
-                    strcat(tmp_res_line, " ");
-                    act_col++;
-                }
-                while((pch = strtok(NULL, " \n"))!= NULL && act_col < col_start){
-                    strcat(tmp_res_line, pch);
-                    strcat(tmp_res_line, " ");
-                    act_col++;
-                }
-                for(int i = 0; i < result->n_cols; i++){
-                    char snumb[11];
-                    sprintf(snumb, "%d ", result->matrix[act_row][i]);
-                    strcat(tmp_res_line, snumb);
-                }
-                while(pch != NULL){
-                    strcat(tmp_res_line, pch);
-                    strcat(tmp_res_line, " \n");
-                    act_col++;
-                    pch = strtok(NULL, " \n");
-                }
-                // printf("Will print: |%s\n", tmp_res_line);
-                fprintf(tmp_res_f, "%s\n", tmp_res_line);
-
-                free(tmp_res_line);
-                act_row++;
-                act_col = 0; 
-            }      
-            while(act_row < result->n_rows){
-                while(act_col++ < col_start)
-                    fputc(' ',tmp_res_f);
-                for(int i = 0; i < result->n_cols; i++){
-                    fprintf(tmp_res_f, "%d ", result->matrix[act_row][i]);
-                }
-                act_col = 0; 
-                act_row++;
-                fputc('\n', tmp_res_f);
-            }
-
-            fclose(tmp_res_f);    
-            fclose(res_file);
-            tmp_res_f = fopen(tmp_file_name, "r");
-            res_file = fopen(res_file_name, "w");
-
-            while(getline(&line, &len, tmp_res_f) != -1)
-                fputs(line,res_file);
-
-            flock(fileno(res_file), LOCK_UN);
-            fclose(res_file);
-            fclose(tmp_res_f);
-
-            free(line);
-        }else if(mode == separate){
+        if(mode == common)
+            fprint_matrix(tasks[task_id].result, result, col_start);
+        else if(mode == separate){
 
         }
 
