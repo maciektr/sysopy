@@ -46,8 +46,7 @@ int read_tasks(char *path, Task **tasks, int n_workers){
 
         int n_cols = count_cols((*tasks)[k].second);
         assert(n_cols > 0);
-        n_cols += n_workers - n_cols%n_workers;
-        (*tasks)[k].cols_per_worker = max(n_cols / n_workers,1);
+        (*tasks)[k].cols_per_worker = max((n_cols%n_workers == 0 ? n_cols / n_workers : n_cols/n_workers+1),1);
         k++;
     }
     free(line);

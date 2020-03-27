@@ -134,7 +134,7 @@ Matrix *multiply_matrices(Matrix *first, Matrix *second){
     return result;
 }
 
-void fprint_matrix(char *res_file_name, Matrix *matrix, int col_start){
+void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char *tmp_file_name){
     FILE *res_file = fopen(res_file_name, "r");
     assert(res_file);
     flock(fileno(res_file), LOCK_EX);
@@ -142,8 +142,6 @@ void fprint_matrix(char *res_file_name, Matrix *matrix, int col_start){
     char *line = NULL;
     size_t len = 0;
 
-    char tmp_file_name[33];
-    sprintf(tmp_file_name, ".runtime/.%dtmp", (int)getpid());
     FILE *tmp_res_f = fopen(tmp_file_name, "w");
     assert(tmp_res_f);
 
@@ -174,7 +172,6 @@ void fprint_matrix(char *res_file_name, Matrix *matrix, int col_start){
             act_col++;
             pch = strtok(NULL, " \n");
         }
-        // printf("Will print: |%s\n", tmp_res_line);
         fprintf(tmp_res_f, "%s\n", tmp_res_line);
 
         free(tmp_res_line);
@@ -203,4 +200,76 @@ void fprint_matrix(char *res_file_name, Matrix *matrix, int col_start){
     fclose(res_file);
     fclose(tmp_res_f);
     free(line);
+}
+
+void fprint_matrix(char *filename, Matrix *matrix){
+    FILE *file = fopen(filename, "w");
+    assert(file);
+    char *line = malloc(matrix->n_cols * 2 * 12 * sizeof(char));
+    char *numb = malloc(12);
+
+    for(int r = 0; r < matrix->n_rows; r++){
+        sprintf(numb, "%d ", matrix->matrix[r][0]);
+        strcpy(line, numb);
+
+        for(int c = 1; c < matrix->n_cols; c++){
+            sprintf(numb, "%d ", matrix->matrix[r][c]);
+            strcat(line, numb);
+        }
+        strcat(line,"\n");
+        fputs(line,file);
+    }
+
+    free(numb);
+    free(line);
+    fclose(file);
+}
+
+void merge_results(char *runtime_dir, Task *tasks){
+    struct dirent **namelist;
+    int n_file = scandir(runtime_dir, &namelist, 0, alphasort);
+    assert(n_file >= 0);
+    char *paste = "paste -d ' '";
+    char *cmd = malloc(15 + n_file*30);
+    strcpy(cmd, paste);
+    int task_last = 0; 
+
+    for(int n = 0; n < n_file; n++){
+        if(strcmp(namelist[n]->d_name, ".") == 0 || strcmp(namelist[n]->d_name, "..") == 0){
+            free(namelist[n]);
+            continue;
+        }
+        char *name_cpy = malloc(strlen(namelist[n]->d_name)+1);
+        strcpy(name_cpy, namelist[n]->d_name);
+        char *stask_id = strtok(name_cpy, "_");
+        assert(stask_id);
+        int task_id = atoi(stask_id); 
+        
+        if(task_id == task_last){
+            strcat(cmd, " ");
+            strcat(cmd, runtime_dir);
+            strcat(cmd, "/");
+            strcat(cmd, namelist[n]->d_name);
+        }else{
+            strcat(cmd, " > ");
+            strcat(cmd, tasks[task_id].result);
+            puts(cmd);
+            system(cmd);
+
+            strcpy(cmd, paste);
+            strcat(cmd, " ");
+            strcat(cmd, runtime_dir);
+            strcat(cmd, "/");
+            strcat(cmd, namelist[n]->d_name);
+            task_last = task_id;
+        }
+        free(namelist[n]);
+        free(name_cpy);
+    }
+    strcat(cmd, " > ");
+    strcat(cmd, tasks[task_last].result);
+    system(cmd);
+
+    free(namelist);
+    free(cmd);
 }

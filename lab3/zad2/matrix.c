@@ -16,6 +16,8 @@
 #include "matrix_parent.h"
 #include "matrix_worker.h"
 
+#define RUNTIME_DIR ".runtime"
+
 enum result_mode{common, separate};
 typedef enum result_mode res_mod;
 
@@ -63,13 +65,16 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
             return res;
         // puts("result");
         // print_matrix(result);
-
+        
+        char *res_file = malloc(33);
+        sprintf(res_file, "%s/.%d_%d_%dtmp", RUNTIME_DIR, task_id, part, (int)getpid());
         if(mode == common)
-            fprint_matrix(tasks[task_id].result, result, col_start);
-        else if(mode == separate){
-
-        }
-
+            fprint_matrix_pos(tasks[task_id].result, result, col_start, res_file);
+        else if(mode == separate)
+            fprint_matrix(res_file, result);
+        
+        
+        free(res_file);
         free_matrix(first);
         free_matrix(second);
         free_matrix(result);
@@ -94,7 +99,10 @@ int main(int argc, char *argv[]){
     res_mod mode = atoi(argv[4]);
     assert_args(mode == common || mode == separate);
 
-    mkdir(".runtime", 0777);
+    char rm_cmd[40] = "rm -rf ";
+    strcat(rm_cmd, RUNTIME_DIR);
+    system(rm_cmd);
+    mkdir(RUNTIME_DIR, 0777);
 
     pid_t *workers = malloc(n_workers * sizeof(pid_t));
     for(int i = 0; i<n_workers; i++){
@@ -105,16 +113,23 @@ int main(int argc, char *argv[]){
         }
     }
 
-    free_tasks(tasks, n_tasks);
-
     for(int i = 0; i<n_workers; i++){
         int status; 
         waitpid(workers[i], &status, 0);
         printf("Proces %d wykonał %d operacji mnożenia.\n", (int)getpid(), WEXITSTATUS(status));
     }
-
     free(workers);
-    system("rm -rf .runtime");
+
+    if(mode == separate){
+        int child = fork();
+        if(child == 0)
+            merge_results(RUNTIME_DIR, tasks);
+        else
+            waitpid(child, NULL, 0);
+    }
+
+    free_tasks(tasks, n_tasks);
+    system(rm_cmd);
     return 0;
 }
 
