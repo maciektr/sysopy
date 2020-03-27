@@ -46,16 +46,10 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
             return res;
 
         Matrix *first = load_whole(tasks[task_id].first);
-        // puts("first loaded");
-        // print_matrix(first);
-        
         if(check_time(begin, timeout))
             return res;
 
         Matrix *second = load_part(tasks[task_id].second, col_start, col_start+real_part, 0, -1);
-        // puts("second loaded");
-        // print_matrix(second);
-
         if(check_time(begin, timeout))
             return res;
 
@@ -63,8 +57,6 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
         res++;
         if(check_time(begin, timeout))
             return res;
-        // puts("result");
-        // print_matrix(result);
         
         char *res_file = malloc(33);
         sprintf(res_file, "%s/.%d_%d_%dtmp", RUNTIME_DIR, task_id, part, (int)getpid());
@@ -72,7 +64,6 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
             fprint_matrix_pos(tasks[task_id].result, result, col_start, res_file);
         else if(mode == separate)
             fprint_matrix(res_file, result);
-        
         
         free(res_file);
         free_matrix(first);
