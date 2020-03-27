@@ -13,10 +13,10 @@ standard: lib
 	$(CC) -static -D_NDEBUG $(FILE) $(INCLUDE_LIBS) -o $(OUT)
 
 debug: lib
-	$(CC) -Wall -fsanitize=address -Wshadow $(FILE) $(INCLUDE_LIBS) -o $(OUT)
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow $(FILE) $(INCLUDE_LIBS) -o $(OUT)
 
 debug_fast: lib
-	$(CC) -Wall  -Wshadow $(FILE) $(INCLUDE_LIBS) -o $(OUT)
+	$(CC) -Wall -Wextra -Wshadow $(FILE) $(INCLUDE_LIBS) -o $(OUT)
 
 lib: clean
 	$(CC) -c $(PARENT_LIB).c -o $(PARENT_LIB).o
@@ -26,6 +26,7 @@ lib: clean
 
 clean:
 	rm -f $(OUT) $(WORKER_LIB).a $(PARENT_LIB).a *.o
+	rm -rf .runtime
 
 # test: main 
 # ./$(OUT) 

@@ -23,9 +23,9 @@ void free_tasks(Task *tasks, int n){
     free(tasks);
 }
 
-int read_tasks(char *path, Task *tasks, int n_workers){
+int read_tasks(char *path, Task **tasks, int n_workers){
     int n = count_lines(path);
-    tasks = malloc(n*sizeof(Task));
+    *tasks = malloc(n*sizeof(Task));
 
     FILE *list = fopen(path, "r");
     assert(list);
@@ -34,19 +34,23 @@ int read_tasks(char *path, Task *tasks, int n_workers){
     int k = 0;
 
     while(getline(&line, &len, list) >= 0){
-        tasks[k].first = malloc(len);
-        strcpy(tasks[k].first, strtok(line, " "));
-        tasks[k].second = malloc(len);
-        strcpy(tasks[k].second, strtok(NULL, " "));
-        tasks[k].result = malloc(len);
-        strcpy(tasks[k].result, strtok(NULL, " "));
+        (*tasks)[k].first = malloc(len);
+        strcpy((*tasks)[k].first, strtok(line, " "));
+        (*tasks)[k].second = malloc(len);
+        strcpy((*tasks)[k].second, strtok(NULL, " "));
+        (*tasks)[k].result = malloc(len);
+        strcpy((*tasks)[k].result, strtok(NULL, " "));
 
-        int n_cols = count_cols(tasks[k].second);
+        FILE *c = fopen((*tasks)[k].result, "w");
+        fclose(c);
+
+        int n_cols = count_cols((*tasks)[k].second);
         assert(n_cols > 0);
         n_cols += n_workers - n_cols%n_workers;
-        tasks[k].cols_per_worker = max(n_cols / n_workers,1);
+        (*tasks)[k].cols_per_worker = max(n_cols / n_workers,1);
         k++;
     }
+    free(line);
     fclose(list);
     return n;
 }

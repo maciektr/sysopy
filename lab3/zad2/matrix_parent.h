@@ -26,6 +26,6 @@ struct Task{
 };
 typedef struct Task Task;
 void free_tasks(Task *tasks, int n);
-int read_tasks(char *path, Task *tasks, int n_workers);
+int read_tasks(char *path, Task **tasks, int n_workers);
 
 #endif

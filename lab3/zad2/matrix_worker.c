@@ -12,11 +12,16 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
     if(row_min > row_max || col_min > col_max)
         return NULL;
 
-    int n_rows = (row_max - row_min + 1);
-    int n_cols = (col_max - col_min +1);
+    int n_rows = (row_max - row_min);
+    int n_cols = (col_max - col_min);
     int **matrix = malloc(n_rows * sizeof(int *));
     for(int i = 0; i < n_rows; i++)
         matrix[i] = malloc(n_cols * sizeof(int));
+
+    Matrix *encl = malloc(sizeof(Matrix));
+    encl->matrix = matrix;
+    encl->n_rows = n_rows;
+    encl->n_cols = n_cols;
 
     FILE *file = fopen(path, "r");
     int act_row = 0, act_col = 0; 
@@ -24,14 +29,14 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
 
     char *line = NULL;
     size_t len = 0;
-    while(getline(&line, &len, file) != -1){      
+    while(getline(&line, &len, file) != -1){   
         if(act_row < row_min){
             act_row++;
             continue;
         }else if(act_row >= row_max)
             break;
 
-        char *pch = strtok(line, " ");
+        char *pch = strtok(line, " \n");
         while(pch != NULL){
             if(act_col < col_min){
                 act_col++;
@@ -39,33 +44,33 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
             }else if(act_col >= col_max)
                 break;
             
-            matrix[mat_row][++mat_col] = atoi(pch);
+            // printf("NEMB: %d : %d | %s\n",mat_row, mat_col, pch);
+            matrix[mat_row][mat_col++] = atoi(pch);
 
             act_col++;
-            pch = strtok(NULL, " ");
+            pch = strtok(NULL, " \n");
         }
 
         act_row++;
         mat_row++;
+        act_col -= mat_col;
         mat_col = 0; 
     }
     
     free(line);
     fclose(file);
-    Matrix *encl = malloc(sizeof(Matrix));
-    encl->matrix = matrix;
-    encl->n_rows = n_rows;
-    encl->n_cols = n_cols;
     return encl;
 }
 
 Matrix *load_whole(char *path){
     FILE *file = fopen(path, "r");
+    assert(file != NULL);
     int n_cols = 0, n_rows = 0;
 
-    char *line;
+    char *line = NULL;
     size_t len;
     int glstat = getline(&line, &len, file);
+    
     for(int i = 0; i<len; i++)
         if(line[i] == ' ')
             n_cols++;
@@ -83,8 +88,11 @@ Matrix *load_whole(char *path){
 }
 
 void free_matrix(Matrix *ptr){
-    while(--ptr->n_rows)
-        free(ptr->matrix[ptr->n_rows]);
+    for(int i = 0; i<ptr->n_rows; i++)
+        free(ptr->matrix[i]);
+    // while(--ptr->n_rows >= 0)
+    //     free(ptr->matrix[ptr->n_rows]);
+    free(ptr->matrix);
     free(ptr);
 }
 
@@ -112,7 +120,21 @@ Matrix *alloc_matrix(int n_rows, int n_cols){
     return result;
 }
 
+void print_matrix(Matrix *matrix){
+    for(int k_r = 0; k_r < matrix->n_rows; k_r++){
+            for(int k_c = 0; k_c < matrix->n_cols; k_c++)
+                printf("%d ", matrix->matrix[k_r][k_c]);
+            puts("");
+        }
+}
+
 Matrix *multiply_matrices(Matrix *first, Matrix *second){
+    // puts("FIRST");
+    // print_matrix(first);
+    // puts("SECOND");
+    // print_matrix(second);
+    // puts("----");
+
     if(first->n_cols != second->n_rows)
         return NULL;
     Matrix *result = alloc_matrix(first->n_rows, second->n_cols);
