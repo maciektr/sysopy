@@ -7,8 +7,10 @@ PARENT_LIB = matrix_parent
 WORKER_LIB = matrix_worker
 INCLUDE_LIBS = -L. -l$(PARENT_LIB)  -l$(WORKER_LIB)
 GEN_FILE = gen_matrix.c
-GEN_OUT = gen.o
-
+GEN_OUT = gen.out
+TEST_FILE = worker_test.c
+TEST_OUT = worker_test.out
+UNITY_PATH = ../../../../Unity
 
 main: debug #standard
 
@@ -28,7 +30,7 @@ lib: clean
 	ar rcs lib$(WORKER_LIB).a $(WORKER_LIB).o
 
 clean:
-	rm -f $(OUT) $(GEN_OUT) lib$(WORKER_LIB).a lib$(PARENT_LIB).a *.o *.a
+	rm -f $(OUT) $(GEN_OUT) lib$(WORKER_LIB).a lib$(PARENT_LIB).a *.o *.a *.out
 	rm -rf .runtime
 
 gen: gen_debug
@@ -37,5 +39,6 @@ gen: gen_debug
 gen_debug:
 	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(GEN_FILE) -o $(GEN_OUT)
 
-# test: main 
-# ./$(OUT) 
+test: debug_fast
+	$(CC) $(TEST_FILE) $(INCLUDE_LIBS) $(UNITY_PATH)/src/unity.c -o $(TEST_OUT)
+	./$(TEST_OUT)
