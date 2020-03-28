@@ -61,8 +61,6 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
         char *res_file = malloc(33);
         sprintf(res_file, "%s/.%d_%d_%dtmp", RUNTIME_DIR, task_id, part, (int)getpid());
 
-        // printf("PR %d %d %d %p\n", task_id, col_start, real_part, result);
-
         if(mode == common)
             fprint_matrix_pos(tasks[task_id].result, result, col_start, res_file);
         else if(mode == separate)
@@ -78,19 +76,44 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
 }
 
 int main(int argc, char *argv[]){
-    assert_args(argc == 5);
+    static struct option long_options[] = {
+        {"help",   no_argument, 0,  'h' },
+        {"meml",   required_argument, 0,  'm' },
+        {"cpul",   required_argument, 0,  'c' },
+        {0, 0, 0, 0}
+    };      
 
-    int n_workers = atoi(argv[2]);
+    int long_index = 0;
+    int opt = 0;
+    while ((opt = getopt_long_only(argc, argv,"hi:a:l:n:f:o:s:", long_options, &long_index )) != -1) {
+        switch (opt) {
+            case 'h':
+                print_usage();
+                break;
+            case 'm':
+
+                break;
+            case 'c':
+
+                break;
+            default:
+                assert_args(false);
+        }
+    }
+    assert_args(optind + 3 < argc);
+
+    int n_workers = atoi(argv[optind + 1]);
     assert_args(n_workers > 0);
 
-    char *file_path = argv[1];
+    char *file_path = argv[optind];
+
     Task *tasks = NULL;
     int n_tasks = read_tasks(file_path, &tasks, n_workers);
 
-    int timeout = atoi(argv[3]);
+    int timeout = atoi(argv[optind + 2]);
     assert_args(timeout > 0);
 
-    res_mod mode = atoi(argv[4]);
+    res_mod mode = atoi(argv[optind + 3]);
     assert_args(mode == common || mode == separate);
 
     char rm_cmd[40] = "rm -rf ";
