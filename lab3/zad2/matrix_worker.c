@@ -135,7 +135,7 @@ Matrix *multiply_matrices(Matrix *first, Matrix *second){
 }
 
 void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char *tmp_file_name){
-    FILE *res_file = fopen(res_file_name, "r");
+    FILE *res_file = fopen(res_file_name, "r+");
     assert(res_file);
     flock(fileno(res_file), LOCK_EX);
 
@@ -189,9 +189,8 @@ void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char 
     }
 
     fclose(tmp_res_f);    
-    fclose(res_file);
     tmp_res_f = fopen(tmp_file_name, "r");
-    res_file = fopen(res_file_name, "w");
+    fseek(res_file, 0,SEEK_SET);
 
     while(getline(&line, &len, tmp_res_f) != -1)
         fputs(line,res_file);
