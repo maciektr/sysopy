@@ -109,17 +109,17 @@ int main(int argc, char *argv[]){
         waitpid(workers[i], &status, 0);
         printf("Proces %d wykonał %d operacji mnożenia.\n", (int)getpid(), WEXITSTATUS(status));
     }
-    free(workers);
-
+    
     if(mode == separate){
-        int child = fork();
-        if(child == 0)
-            merge_results(RUNTIME_DIR, tasks);
-        else
-            waitpid(child, NULL, 0);
+        free(workers);
+        workers = malloc(n_tasks * sizeof(pid_t));
+        int last = merge_results(RUNTIME_DIR, tasks, workers);
+        for(int i = 0; i < last; i++)
+            waitpid(workers[i], NULL, 0);
     }
 
     free_tasks(tasks, n_tasks);
+    free(workers);
     system(rm_cmd);
     return 0;
 }
