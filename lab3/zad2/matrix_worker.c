@@ -226,3 +226,22 @@ void fprint_matrix(char *filename, Matrix *matrix){
     free(line);
     fclose(file);
 }
+
+bool cmp_matrices(Matrix *first, Matrix *second){
+    assert(first);
+    assert(second);
+    if(first->n_cols != second->n_cols || first->n_rows != second->n_rows)
+        return false;
+    if(first->n_cols == 0 && first->n_rows == 0)
+        return true;
+    
+    assert(first->matrix);
+    assert(second->matrix);
+
+    for(int i = 0; i < first->n_rows; i++)
+        for(int k = 0; k < first->n_cols; k++)
+            if(first->matrix[i][k] != second->matrix[i][k])
+                return false;
+
+    return true;
+}
