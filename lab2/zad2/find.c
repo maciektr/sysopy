@@ -173,6 +173,7 @@ int main(int argc, char *argv[]){
         switch (opt) {
             case 'h':
                 print_usage();
+                break;
             case 'm': 
                 assert_args(optarg != NULL);
                 if(optarg[0] == '+')
