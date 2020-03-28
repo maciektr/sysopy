@@ -80,8 +80,8 @@ void generate(char *list_filename, char *folder, int n, int minv, int maxv, int 
             int side_a = rand() %(maxn - minn +1) + minn;
             int side_b = rand() %(maxn - minn +1) + minn;
             int side_c = rand() %(maxn - minn +1) + minn;
-            print_rand_matrix(a, side_a, side_b, minv, maxv);
-            print_rand_matrix(b, side_b, side_c, minv, maxv);
+            print_rand_matrix(b, side_a, side_b, minv, maxv);
+            print_rand_matrix(a, side_b, side_c, minv, maxv);
             free(a);
             free(b);
             exit(EXIT_SUCCESS);

@@ -49,7 +49,7 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
         if(check_time(begin, timeout))
             return res;
 
-        Matrix *second = load_part(tasks[task_id].second, col_start, col_start+real_part, 0, -1);
+        Matrix *second = load_part(tasks[task_id].second, col_start, col_start+real_part-1, 0, -1);
         if(check_time(begin, timeout))
             return res;
 
@@ -60,6 +60,9 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
         
         char *res_file = malloc(33);
         sprintf(res_file, "%s/.%d_%d_%dtmp", RUNTIME_DIR, task_id, part, (int)getpid());
+
+        // printf("PR %d %d %d %p\n", task_id, col_start, real_part, result);
+
         if(mode == common)
             fprint_matrix_pos(tasks[task_id].result, result, col_start, res_file);
         else if(mode == separate)

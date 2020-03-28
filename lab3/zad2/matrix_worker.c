@@ -79,10 +79,10 @@ Matrix *load_whole(char *path){
 }
 
 void free_matrix(Matrix *ptr){
-    for(int i = 0; i<ptr->n_rows; i++)
-        free(ptr->matrix[i]);
-    // while(--ptr->n_rows >= 0)
-    //     free(ptr->matrix[ptr->n_rows]);
+    if(ptr == NULL)
+        return;
+    while(--ptr->n_rows >= 0)
+        free(ptr->matrix[ptr->n_rows]);
     free(ptr->matrix);
     free(ptr);
 }
@@ -120,6 +120,7 @@ void print_matrix(Matrix *matrix){
 }
 
 Matrix *multiply_matrices(Matrix *first, Matrix *second){
+    assert(first->n_cols == second->n_rows);
     if(first->n_cols != second->n_rows)
         return NULL;
     Matrix *result = alloc_matrix(first->n_rows, second->n_cols);
@@ -135,6 +136,8 @@ Matrix *multiply_matrices(Matrix *first, Matrix *second){
 }
 
 void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char *tmp_file_name){
+    assert(matrix);
+
     FILE *res_file = fopen(res_file_name, "r+");
     assert(res_file);
     flock(fileno(res_file), LOCK_EX);
@@ -144,12 +147,11 @@ void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char 
 
     FILE *tmp_res_f = fopen(tmp_file_name, "w");
     assert(tmp_res_f);
-
     int act_row = 0, act_col = 0; 
+    
     while((getline(&line, &len, res_file)) != -1&& act_row < matrix->n_rows){
         char *tmp_res_line = malloc(len + (matrix->n_cols * 12 * 2));
         assert(tmp_res_line);
-
         char *pch = strtok(line, " \n");
         if(pch != NULL){
             strcpy(tmp_res_line, pch);
@@ -190,6 +192,7 @@ void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char 
 
     fclose(tmp_res_f);    
     tmp_res_f = fopen(tmp_file_name, "r");
+    assert(tmp_res_f);
     fseek(res_file, 0,SEEK_SET);
 
     while(getline(&line, &len, tmp_res_f) != -1)
@@ -198,19 +201,19 @@ void fprint_matrix_pos(char *res_file_name, Matrix *matrix, int col_start, char 
     flock(fileno(res_file), LOCK_UN);
     fclose(res_file);
     fclose(tmp_res_f);
-    free(line);
+    if(line != NULL)
+        free(line);
 }
 
 void fprint_matrix(char *filename, Matrix *matrix){
     FILE *file = fopen(filename, "w");
     assert(file);
-    char *line = malloc(matrix->n_cols * 2 * 12 * sizeof(char));
-    char *numb = malloc(12);
-
+    char *line = malloc(matrix->n_cols * 2 * 20 * sizeof(char));
+    char *numb = malloc(20);
     for(int r = 0; r < matrix->n_rows; r++){
         sprintf(numb, "%d ", matrix->matrix[r][0]);
+        
         strcpy(line, numb);
-
         for(int c = 1; c < matrix->n_cols; c++){
             sprintf(numb, "%d ", matrix->matrix[r][c]);
             strcat(line, numb);
