@@ -12,7 +12,7 @@ TEST_FILE = worker_test.c
 TEST_OUT = worker_test.out
 UNITY_PATH = ../../../../Unity
 
-main: debug #standard
+main: standard
 
 standard: lib
 	$(CC)  -static -D_NDEBUG $(FILE) $(INCLUDE_LIBS) -o $(OUT)
@@ -33,8 +33,8 @@ clean:
 	rm -f $(OUT) $(GEN_OUT) lib$(WORKER_LIB).a lib$(PARENT_LIB).a *.o *.a *.out
 	rm -rf .runtime
 
-gen: gen_debug
-	# $(CC) -static -D_NDEBUG $(GEN_FILE) -o $(GEN_OUT)
+gen: 
+	$(CC) -static -D_NDEBUG $(GEN_FILE) -o $(GEN_OUT)
 
 gen_debug:
 	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(GEN_FILE) -o $(GEN_OUT)

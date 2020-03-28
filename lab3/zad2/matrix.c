@@ -41,13 +41,16 @@ int worker(int timeout, Task *tasks, int n_tasks, res_mod mode, int part){
             continue;
             
         int col_start = part * tasks[task_id].cols_per_worker;
-        int real_part = min(col_start + tasks[task_id].cols_per_worker, n_col) - col_start;
+        int real_part = min(col_start + tasks[task_id].cols_per_worker, n_col) - col_start -1;
+        if(real_part <= 0)
+            continue;
         if(check_time(begin, timeout))
             return res;
 
-        Matrix *first = load_whole(tasks[task_id].first);
+        Matrix *first = load_whole(tasks[task_id].first);      
         if(check_time(begin, timeout))
             return res;
+
 
         Matrix *second = load_part(tasks[task_id].second, col_start, col_start+real_part-1, 0, -1);
         if(check_time(begin, timeout))
@@ -85,17 +88,20 @@ int main(int argc, char *argv[]){
 
     int long_index = 0;
     int opt = 0;
-
+    int meml = -1;
+    int cpul = -1;
     while ((opt = getopt_long_only(argc, argv,"hm:c:", long_options, &long_index )) != -1) {
         switch (opt) {
             case 'h':
                 print_usage();
                 break;
             case 'm':
-
+                meml = 1000000 * atoi(optarg);
+                assert_args(meml >= 0);
                 break;
             case 'c':
-
+                cpul = atoi(optarg);
+                assert_args(cpul >= 0);
                 break;
             default:
                 assert_args(false);
@@ -127,6 +133,21 @@ int main(int argc, char *argv[]){
         workers[i] = fork();
         if(workers[i] == 0){
             free(workers);
+
+            struct rlimit *limit = malloc(sizeof(struct rlimit));
+            if(cpul != -1){
+                getrlimit(RLIMIT_CPU, limit);
+                limit->rlim_cur = min((int)limit->rlim_cur, cpul);
+                limit->rlim_max = cpul;
+                setrlimit(RLIMIT_CPU, limit);
+            }
+            if(meml != -1){
+                getrlimit(RLIMIT_AS, limit);
+                limit->rlim_cur = min((int)limit->rlim_cur, meml);
+                limit->rlim_max = meml;
+                setrlimit(RLIMIT_AS, limit);
+            }
+            free(limit);
             return worker(timeout, tasks, n_tasks, mode, i);
         }
     }

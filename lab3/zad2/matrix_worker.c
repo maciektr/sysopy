@@ -3,7 +3,7 @@
 Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max){
     if(row_max == -1){
         row_min = 0; 
-        row_max = count_rows(path);
+        row_max = count_rows(path)-1;
     }
     assert(row_min <= row_max);
     assert(col_min <= col_max);
@@ -11,8 +11,8 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
     if(row_min > row_max || col_min > col_max)
         return NULL;
 
-    int n_rows = (row_max - row_min);
-    int n_cols = (col_max - col_min);
+    int n_rows = (row_max - row_min + 1);
+    int n_cols = (col_max - col_min + 1);
     int **matrix = malloc(n_rows * sizeof(int *));
     for(int i = 0; i < n_rows; i++)
         matrix[i] = malloc(n_cols * sizeof(int));
@@ -32,7 +32,7 @@ Matrix *load_part(char *path, int col_min, int col_max, int row_min, int row_max
         if(act_row < row_min){
             act_row++;
             continue;
-        }else if(act_row >= row_max)
+        }else if(act_row > row_max)
             break;
         char *pch = strtok(line, " \n");
         while(pch != NULL){
@@ -61,11 +61,10 @@ Matrix *load_whole(char *path){
     char *line = NULL;
     size_t len;
     int glstat = getline(&line, &len, file);
-    
-    for(int i = 0; i<len; i++)
-        if(line[i] == ' ')
-            n_cols++;
-    n_cols++;
+
+    char *pch = strtok(line, " ");
+    while((pch = strtok(NULL, " ")) != NULL)
+        n_cols++;
     
     if(glstat != -1){
         n_rows=1;
@@ -75,7 +74,7 @@ Matrix *load_whole(char *path){
 
     free(line);
     fclose(file);
-    return load_part(path, 0, n_cols, 0, n_rows);
+    return load_part(path, 0, n_cols-1, 0, n_rows-1);
 }
 
 void free_matrix(Matrix *ptr){

@@ -21,8 +21,8 @@ void print_rand_matrix(char *filename, int n_rows, int n_cols, int minv, int max
     FILE *file = fopen(filename, "w");
     assert(file);
 
-    while(n_rows--){
-        for(int i = 0; i<n_cols; i++){
+    for(int k = 0; k < n_rows; k++){
+        for(int i = 0; i < n_cols; i++){
             int rint = rand() % (maxv - minv + 1) + minv;
             fprintf(file, "%d ", rint);
         }
@@ -65,7 +65,6 @@ void generate(char *list_filename, char *folder, int n, int minv, int maxv, int 
             sprintf(line, "%s %s %d_c.txt", a, b, i);
         }
         if(list != NULL){
-            // fprintf(list, "proc%d - %d\n", (int)getpid(), i);
             fprintf(list, "%s\n", line);
         }else{
             puts(line);
@@ -75,13 +74,14 @@ void generate(char *list_filename, char *folder, int n, int minv, int maxv, int 
 
         workers[i] = fork();
         if(workers[i] == 0){
+            srand(time(NULL) ^ (getpid()<<16));
             free(line);
             free(workers);
             int side_a = rand() %(maxn - minn +1) + minn;
             int side_b = rand() %(maxn - minn +1) + minn;
             int side_c = rand() %(maxn - minn +1) + minn;
-            print_rand_matrix(b, side_a, side_b, minv, maxv);
-            print_rand_matrix(a, side_b, side_c, minv, maxv);
+            print_rand_matrix(a, side_a, side_b, minv, maxv);
+            print_rand_matrix(b, side_b, side_c, minv, maxv);
             free(a);
             free(b);
             exit(EXIT_SUCCESS);
