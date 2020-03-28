@@ -85,7 +85,8 @@ int main(int argc, char *argv[]){
 
     int long_index = 0;
     int opt = 0;
-    while ((opt = getopt_long_only(argc, argv,"hi:a:l:n:f:o:s:", long_options, &long_index )) != -1) {
+
+    while ((opt = getopt_long_only(argc, argv,"hm:c:", long_options, &long_index )) != -1) {
         switch (opt) {
             case 'h':
                 print_usage();
@@ -151,15 +152,11 @@ int main(int argc, char *argv[]){
 }
 
 void print_usage(){
-    /*
-    Argumenty: 
-    - list.txt
-    - n_workers
-    - timeout time
-    - sposob laczenia wyniku
-    */
-    puts("Usage: matrix [list] [workers] [timeout] [mode]"); 
+    puts("Usage: matrix [options] [list] [workers] [timeout] [mode]"); 
     puts("Description: search for files in a directory hierarchy.");
+    puts("Options:");
+    puts("    --meml n - Defines memory limit (in megabytes) for every subprocess.");
+    puts("    --cpul n - Defines cpu time limit (in seconds) for every subprocess.");
     puts("Arguments:");
     puts("    - list - Path to file in which multiplication tasks are specified.");
     puts("    - workers - Defines the number of subprocesses created.");
