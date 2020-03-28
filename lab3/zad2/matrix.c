@@ -176,9 +176,9 @@ int main(int argc, char *argv[]){
         struct rusage *us = malloc(sizeof(struct rusage));
         assert(getrusage(RUSAGE_CHILDREN, us) == 0);
         puts("Resources used:");
-        printf("User CPU time: %ds\n", us->ru_utime);
-        printf("System CPU time: %ds\n", us->ru_stime);
-        printf("Memory: %dKB\n",us->ru_maxrss);
+        printf("User CPU time: %ld s %ld us\n", (long int)us->ru_utime.tv_sec, (long int)us->ru_utime.tv_usec);
+        printf("System CPU time: %ld s %ld us\n", (long int)us->ru_stime.tv_sec, (long int)us->ru_utime.tv_usec);
+        printf("Memory: %d KB\n", (int)us->ru_maxrss);
         free(us);
     }
 
