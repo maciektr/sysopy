@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/file.h>
+#include <sys/time.h>
 #include <stdbool.h> 
 #include <getopt.h>
 #include <unistd.h> 
@@ -83,6 +84,7 @@ int main(int argc, char *argv[]){
         {"help",   no_argument, 0,  'h' },
         {"meml",   required_argument, 0,  'm' },
         {"cpul",   required_argument, 0,  'c' },
+        {"stats", no_argument, 0, 's'},
         {0, 0, 0, 0}
     };      
 
@@ -90,7 +92,8 @@ int main(int argc, char *argv[]){
     int opt = 0;
     int meml = -1;
     int cpul = -1;
-    while ((opt = getopt_long_only(argc, argv,"hm:c:", long_options, &long_index )) != -1) {
+    bool stats = false;
+    while ((opt = getopt_long_only(argc, argv,"hm:c:s", long_options, &long_index )) != -1) {
         switch (opt) {
             case 'h':
                 print_usage();
@@ -102,6 +105,9 @@ int main(int argc, char *argv[]){
             case 'c':
                 cpul = atoi(optarg);
                 assert_args(cpul >= 0);
+                break;
+            case 's':
+                stats = true;
                 break;
             default:
                 assert_args(false);
@@ -166,6 +172,16 @@ int main(int argc, char *argv[]){
             waitpid(workers[i], NULL, 0);
     }
 
+    if(stats){
+        struct rusage *us = malloc(sizeof(struct rusage));
+        assert(getrusage(RUSAGE_CHILDREN, us) == 0);
+        puts("Resources used:");
+        printf("User CPU time: %ds\n", us->ru_utime);
+        printf("System CPU time: %ds\n", us->ru_stime);
+        printf("Memory: %dKB\n",us->ru_maxrss);
+        free(us);
+    }
+
     free_tasks(tasks, n_tasks);
     free(workers);
     system(rm_cmd);
@@ -178,6 +194,7 @@ void print_usage(){
     puts("Options:");
     puts("    --meml n - Defines memory limit (in megabytes) for every subprocess.");
     puts("    --cpul n - Defines cpu time limit (in seconds) for every subprocess.");
+    puts("    --stats - Shows statistics of resources used after program termination.");
     puts("Arguments:");
     puts("    - list - Path to file in which multiplication tasks are specified.");
     puts("    - workers - Defines the number of subprocesses created.");
