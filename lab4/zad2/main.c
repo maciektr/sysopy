@@ -30,28 +30,20 @@ void check_pending(int sigint){
 int main(int argc, char *argv[]){
     assert(argc == 2);
 
-    if(strcmp(argv[1],"ignore") == 0){
-        // ustawia ignorowanie
+    if(strcmp(argv[1],"ignore") == 0)
         signal(SIGUSR1, SIG_IGN);
-    }else if(strcmp(argv[1],"handler") == 0){
-        // instaluje handler obsługujący sygnał wypisujący komunikat o jego otrzymaniu
+    else if(strcmp(argv[1],"handler") == 0)
         signal(SIGUSR1, handler);
-    }else if(strcmp(argv[1],"mask") == 0 || strcmp(argv[1],"pending") == 0)
-        // maskuje ten sygnał
+    else if(strcmp(argv[1],"mask") == 0 || strcmp(argv[1],"pending") == 0)
         mask(SIGUSR1);
-        // oraz sprawdza (przy zamaskowaniu tego sygnału) czy wiszący/oczekujący sygnał jest widoczny w procesie
 
-    // funkcji raise wysyła sygnał do samego siebie oraz wykonuje odpowiednie dla danej opcji działania
     raise(SIGUSR1);
     
     if(strcmp(argv[1],"pending") == 0)
         check_pending(SIGUSR1);
 
-    // tworzy potomka funkcją fork
     int child = fork();
     if(child == 0){
-    // ponownie przy pomocy funkcji raise potomek wysyła sygnał do samego siebie 
-    // (z wyjątkiem opcji pending, gdzie testowane jest sprawdzenie, czy sygnał czekający w przodku jest widoczny w potomku).
         if(strcmp(argv[1], "pending") == 0)
             check_pending(SIGUSR1);
         else
