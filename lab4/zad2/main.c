@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
@@ -48,8 +49,18 @@ int main(int argc, char *argv[]){
             check_pending(SIGUSR1);
         else
             raise(SIGUSR1);        
+        return 0;
     }else
         waitpid(child, NULL, 0);
 
-    exit(EXIT_SUCCESS);
+    char **cmd_args = malloc((2) * sizeof(char *));
+    cmd_args[0] = "./do_exec.o";
+    cmd_args[1] = argv[1];
+    cmd_args[2] = NULL;
+
+    char path[PATH_MAX];
+    assert(realpath(".",path) != NULL);
+    strcat(path,"/do_exec.o");
+    execvp(path, cmd_args);
+    free(cmd_args);
 }       

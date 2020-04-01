@@ -1,0 +1,33 @@
+Po uruchomieniu programu z kolejnymi argumentami z linii poleceń 
+otrzymałem następujące wiadomości na wyjściach. 
+
+# Ignore
+
+# Handler
+Caught signal no. 10.
+Caught signal no. 10.
+User defined signal 1
+
+# Mask
+
+# Pending
+Signal no. 10 is pending
+Signal no. 10 is not pending
+Signal no. 10 is pending
+
+Tym samym wnioskować mogę, że ustawienie ignorowania sygnału jest 
+dziedziczone zarówno poprzez procesy utworzone 
+poleceniem fork jak i exec. 
+
+Funkcje ustawione jako obsługujące dany sygnał dziedziczone są przez 
+procesy potomne utworzone poleceniem fork, jednak przestają obsługiwać
+sygnałów po wywołaniu polecenia exec (co może być spowodowane tym, 
+że po wywołaniu polecenia exec pamięć procesu - rodzica jest 
+nadpisywana, zatem i ta funkcja może zostać nadpisana).
+
+Maski blokujące sygnały nieprzestają obowiązywać 
+w żadnym z procesów potomnych.
+
+Sygnały oczekujące nie są dziedziczone przez procesy potomne ustanowione 
+poleceniem fork(), oczekują jednak nieprzerwanie również w procesach 
+wywołanych poleceniem exec.
