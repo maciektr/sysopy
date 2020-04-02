@@ -12,7 +12,6 @@ int catched=0;
 
 void catcher_up(int sig){
     catched++;
-    puts("XD");
 }
 
 void catch_end(int sig, siginfo_t * info, void *ucontext){
@@ -41,8 +40,7 @@ int main(){
     act.sa_flags = SA_SIGINFO;
     act.sa_sigaction = &catch_end;
     sigaction(SIGUSR2,&act, NULL);
-    sigaction(SIGRTMAX,&act, NULL);
+    sigaction(SIGRTMIN+1,&act, NULL);
 
-    while(1)
-        pause();
+    while(1) ;
 }   

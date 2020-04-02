@@ -15,9 +15,8 @@ void send(pid_t pid, int n, mode_t mode){
         if(mode == kill_m)
             kill(pid, SIGUSR1);
         else if(mode == sigqueue_m){
-            union sigval s;
-            s.sival_int = SIGUSR1;
-            sigqueue(pid, 0, s);
+            union sigval s = {.sival_int = SIGUSR1};
+            sigqueue(pid, SIGUSR1, s);
         }else if(mode == sigrt_m)
             kill(pid, SIGRTMIN);
     }
@@ -26,9 +25,9 @@ void send(pid_t pid, int n, mode_t mode){
     else if(mode == sigqueue_m){
         union sigval s;
         s.sival_int = SIGUSR2;
-        sigqueue(pid, 0, s);
+        sigqueue(pid, SIGUSR2, s);
     }else if(mode == sigrt_m)
-            kill(pid, SIGRTMAX);
+            kill(pid, SIGRTMIN+1);
 }
 
 int catched = 0; 
@@ -63,11 +62,10 @@ int main(int argc, char *argv[]){
     sigdelset(&all, SIGINT);
     assert(sigprocmask(SIG_BLOCK, &all, NULL) >= 0);
 
-    send((pid_t)catcher_pid, n, mode);
-
     signal(SIGUSR1,catch_usr1);
     signal(SIGUSR2,catch_usr2);
+
+    send((pid_t)catcher_pid, n, mode);
     
-    while(1)
-        pause();
+    while(1);
 }
