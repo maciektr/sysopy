@@ -16,7 +16,7 @@ void catcher_up(int sig){
 
 void catch_end(int sig, siginfo_t * info, void *ucontext){
     printf("Catched %d\n", catched);
-    while(catched--){
+    for(int i = 0; i<catched; i++){
         kill(info->si_pid, SIGUSR1);
     }
     kill(info->si_pid, SIGUSR2);
@@ -31,6 +31,8 @@ int main(){
     sigdelset(&all, SIGUSR1);
     sigdelset(&all, SIGUSR2);
     sigdelset(&all, SIGINT);
+    sigdelset(&all, SIGRTMIN);
+    sigdelset(&all, SIGRTMAX);
     assert(sigprocmask(SIG_BLOCK, &all, NULL) >= 0);
 
     signal(SIGUSR1,catcher_up);
@@ -39,8 +41,9 @@ int main(){
     struct sigaction act;
     act.sa_flags = SA_SIGINFO;
     act.sa_sigaction = &catch_end;
-    sigaction(SIGUSR2,&act, NULL);
-    sigaction(SIGRTMIN+1,&act, NULL);
+    sigaction(SIGRTMAX, &act, NULL);
+    sigaction(SIGUSR2, &act, NULL);
 
-    while(1) ;
+    while(1) 
+        pause();
 }   

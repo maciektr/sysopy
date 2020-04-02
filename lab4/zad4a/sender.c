@@ -27,14 +27,14 @@ void send(pid_t pid, int n, mode_t mode){
         s.sival_int = SIGUSR2;
         sigqueue(pid, SIGUSR2, s);
     }else if(mode == sigrt_m)
-            kill(pid, SIGRTMIN+1);
+            kill(pid, SIGRTMAX);
 }
 
 int catched = 0; 
 int n = 0;
 
 void catch_usr1(int sig){
-    catched++;
+    catched=catched+1;
 }
 
 void catch_usr2(int sig){
@@ -60,6 +60,8 @@ int main(int argc, char *argv[]){
     sigdelset(&all, SIGUSR1);
     sigdelset(&all, SIGUSR2);
     sigdelset(&all, SIGINT);
+    sigdelset(&all, SIGRTMIN);
+    sigdelset(&all, SIGRTMAX);
     assert(sigprocmask(SIG_BLOCK, &all, NULL) >= 0);
 
     signal(SIGUSR1,catch_usr1);
@@ -67,5 +69,6 @@ int main(int argc, char *argv[]){
 
     send((pid_t)catcher_pid, n, mode);
     
-    while(1);
+    while(1)
+        pause();
 }
