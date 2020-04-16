@@ -37,19 +37,14 @@ char **get_cmd(char *in){
     char *pch = strtok(cmd, " |\n");
     while(pch != NULL){
         res[i++] = pch;
-        // printf("G %s\n", res[i-1]);
         pch = strtok(NULL, " |\n");
     }
     res[i] = NULL;
-    // free(cmd);
-    // printf("G %s\n", res[0]);
-    // printf("G %s\n", res[1]);
     return res;
 }
 
 void process_line(char *line, int len){
     int n_proc = count_proc(line, len);
-    printf("N_PROC: %d\n", n_proc);
     pid_t *proc = malloc(n_proc * sizeof(pid_t));
 
     int k = 0;
@@ -60,31 +55,24 @@ void process_line(char *line, int len){
 
     int pch_off = 0;
     while(pch != NULL){
-        printf("CMD %s\n", pch);
         pch_off += strlen(pch);
         char **args = get_cmd(pch);
 
-        if(k < n_proc-1){
-            puts("PIPE");
+        if(k < n_proc-1)
             assert(pipe(fd_tab[k%2]) != -1);
-        }
 
         if((proc[k] = fork()) == 0){
-            printf("S %s\n", args[0]);
             // In child process
             if(k > 0){
-                printf("%s AS IN %d\n",args[0],k);
                 // Use pipe as stdin
                 dup2(fd_tab[(k+1)%2][0], STDIN_FILENO);
                 close(fd_tab[(k+1)%2][1]);
             }
             if(k < n_proc-1){
-                printf("%s AS OUT %d\n",args[0],k);
                 // Use pipe as stdout
                 dup2(fd_tab[k%2][1], STDOUT_FILENO);
                 close(fd_tab[k%2][0]);
             }
-            // printf("EXEC %s\n", args[0]);
             execvp(*args, args);
         }
 
