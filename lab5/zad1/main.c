@@ -52,15 +52,10 @@ void process_line(char *line){
     fd_tab[0] = malloc(2 * sizeof(int));
     fd_tab[1] = malloc(2 * sizeof(int));
     
-    // printf("SIZE %d\n", strlen(line));
-    // printf("T %s\n", line+22);
     char *pch = strtok(line, "|\n");
     int pch_off = 0;
     while(pch != NULL){
-        // printf("CMD %s\n", pch);
-        // printf("L %d | %d\n",pch_off, strlen(pch));
         pch_off += strlen(pch)+1;
-        // printf("B %s\n",line+pch_off);
         char **args = get_cmd(pch);
 
         if(k < n_proc-1)
@@ -70,27 +65,21 @@ void process_line(char *line){
             // In child process
             if(k > 0){
                 // Use pipe as stdin
-                // printf("%s AS IN %d\n", args[0],(k+1)%2);
                 close(fd_tab[(k+1)%2][1]);
                 dup2(fd_tab[(k+1)%2][0], STDIN_FILENO);
             }
             if(k < n_proc-1){
                 // Use pipe as stdout
-                // printf("%s AS OUT %d\n", args[0],k%2);
                 close(fd_tab[k%2][0]);
                 dup2(fd_tab[k%2][1], STDOUT_FILENO);
             }
-            // printf("EX %s\n", args[2]);
             execvp(*args, args);
         }
         close(fd_tab[k%2][1]);
 
         k++;
         free(args);
-        // printf("O %d\n", pch_off);
-        // printf("C %s\n",line+pch_off+1);
         pch = strtok(line+pch_off+1, "|\n");
-        // printf("%p\n", pch);
     }
 
     for(int i = 0; i<=k; i++)
