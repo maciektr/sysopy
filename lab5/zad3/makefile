@@ -19,4 +19,7 @@ debug: clean
 	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(TEST) -o $(TEST_OUT)
 
 clean:
-	rm -f $(MANF_OUT) $(CONS_OUT) *.o *.out
+	rm -f fifo_file $(MANF_OUT) $(CONS_OUT) *.o *.out
+
+test: main 
+	@./$(TEST_OUT)
