@@ -11,4 +11,4 @@ clean:
 	rm -f $(NAME_OUT) *.o *.out
 
 test: main
-	./$(NAME_OUT) cmd.txt
+	@./$(NAME_OUT) cmd.txt
