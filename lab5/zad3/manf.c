@@ -27,7 +27,7 @@ int main(int argc, char **argv){
         buffer[l] = '\0';
         fprintf(fifo, "#%d#%s", (int)getpid(), buffer);
         fflush(fifo);
-        sleep(rand()%3+1);
+        sleep(rand()%2+1);
     }
 
     free(buffer);
