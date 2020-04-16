@@ -37,76 +37,63 @@ char **get_cmd(char *in){
     char *pch = strtok(cmd, " |\n");
     while(pch != NULL){
         res[i++] = pch;
+        // printf("G %s\n", res[i-1]);
         pch = strtok(NULL, " |\n");
     }
     res[i] = NULL;
+    // free(cmd);
+    // printf("G %s\n", res[0]);
+    // printf("G %s\n", res[1]);
     return res;
 }
 
 void process_line(char *line, int len){
     int n_proc = count_proc(line, len);
+    printf("N_PROC: %d\n", n_proc);
     pid_t *proc = malloc(n_proc * sizeof(pid_t));
 
     int k = 0;
     int **fd_tab = malloc(2*sizeof(int *));
-    // int fda[2];
-    // int fdb[2];
-    // fd_tab[0] = fda;
-    // fd_tab[1] = fdb;
     fd_tab[0] = malloc(2 * sizeof(int));
     fd_tab[1] = malloc(2 * sizeof(int));
     char *pch = strtok(line, "|\n");
+
+    int pch_off = 0;
     while(pch != NULL){
         printf("CMD %s\n", pch);
+        pch_off += strlen(pch);
         char **args = get_cmd(pch);
-        if(k != n_proc-1){
-            pipe(fd_tab[k%2]);
+
+        if(k < n_proc-1){
+            puts("PIPE");
+            assert(pipe(fd_tab[k%2]) != -1);
         }
+
         if((proc[k] = fork()) == 0){
-            if(k != 0){
-                // use pipe as input
-                // close(fd_tab[(k+1)%2][0]);
-                dup2(fd_tab[(k+1)%2][1], STDIN_FILENO);
+            printf("S %s\n", args[0]);
+            // In child process
+            if(k > 0){
+                printf("%s AS IN %d\n",args[0],k);
+                // Use pipe as stdin
+                dup2(fd_tab[(k+1)%2][0], STDIN_FILENO);
+                close(fd_tab[(k+1)%2][1]);
             }
-            if(k != n_proc-1){
-                // close(fd_tab[k%2][1]);
-                dup2(fd_tab[k%2][0], STDOUT_FILENO);
+            if(k < n_proc-1){
+                printf("%s AS OUT %d\n",args[0],k);
+                // Use pipe as stdout
+                dup2(fd_tab[k%2][1], STDOUT_FILENO);
+                close(fd_tab[k%2][0]);
             }
-            // exec
-            free(proc);
-            free(fd_tab[0]);
-            free(fd_tab[1]);
-            free(fd_tab);
-            execvp(*args, args+1);
-        // }else{
+            // printf("EXEC %s\n", args[0]);
+            execvp(*args, args);
         }
-        free(args);
 
-        // int fd[2];
-        // pipe(fd);
-        // pid_t pid = fork();
-        // if (pid == 0) { // dziecko
-        //     close(fd[1]); 
-        //     dup2(fd[0],STDIN_FILENO);
-        //     execlp("grep", "grep","Ala", NULL);
-        // } else { // rodzic
-        //     close(fd[0]);
-        //     // write(fd[1], ...) - przesłanie danych do grep-a
-        // }
-
-        // pipe(fd);
-        // if (fork() == 0) { // dziecko 1 - pisarz
-        //     close(fd[0]);
-        //     // ...
-        // } else if (fork() == 0) { // dziecko 2 - czytelnik
-        //     close(fd[1]);
-        //     // ...
-        // }
         k++;
-        pch = strtok(NULL, "|\n");
+        free(args);
+        pch = strtok(line+pch_off+1, "|\n");
     }
 
-    for(int i = 0; i<n_proc; i++)
+    for(int i = 0; i<=k; i++)
         waitpid(proc[i], NULL, 0);
     free(proc);
     free(fd_tab[0]);
@@ -115,9 +102,6 @@ void process_line(char *line, int len){
 }
 
 int main(int argc, char **argv){
-    // char *cmd[] = {"-al",NULL};
-    // execvp("ls",cmd);
-
     assert(argc >=2);
     char *path = argv[1];
     FILE *file = fopen(path, "r");
