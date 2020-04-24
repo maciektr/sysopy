@@ -1,7 +1,49 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-//#define MAX_MSG_LEN
-#define PROJECT_ID 304529212
+#include <limits.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <assert.h>
+#include <pwd.h>
+#include <sys/msg.h>
+#ifndef MSGMAX
+#define MSGMAX 4056
+#endif
+
+#define PROJECT_ID 244
+#define QMOD 0666
+
+char *get_homedir();
+int create_queue(char *path, int id);
+
+typedef enum{FREE, BUSY} status_t;
+typedef struct {
+    int id; 
+    status_t status;
+} client;
+
+#define MSG_TYPE_URGENT (-1*(LONG_MAX-10))  
+// Server-client message format
+typedef enum {LIST, CONNECT, DISCONNECT, STOP, NONE} order_t;
+#define MSG_T_CLIENTS_MAX (((MSGMAX - sizeof(int) - sizeof(order_t) - sizeof(long))/sizeof(client))-4)
+typedef struct {
+    long mtype;
+    int sender_key;
+    order_t order;
+    long integer_msg;
+    client clients[MSG_T_CLIENTS_MAX];
+} message_t;
+#define msg_t message_t
+#define MSG_T_LEN (sizeof(msg_t) - sizeof(long))
+
+// Client-client message format
+#define TXTMSG_TEXT_MAX (MSGMAX - 0)
+typedef struct {
+    long mtype;
+    char text[TXTMSG_TEXT_MAX];
+} text_message_t;
+#define txtmsg_t text_message_t
+#define TXTMSG_T_LEN (sizeof(txtmsg_t) - sizeof(long))
 
 #endif //_COMMON_H
