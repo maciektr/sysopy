@@ -147,7 +147,7 @@ void init(){
     atexit(close_queue);
     signal(SIGINT, stop_sig);
 
-    queue_id = create_queue(get_homedir(), PROJECT_ID);
+    queue_id = get_queue(get_homedir(), PROJECT_ID);
     assert(queue_id != -1);
 }
 

@@ -16,7 +16,7 @@
 #define CLIENTS_MAX MSG_T_CLIENTS_MAX
 
 char *get_homedir();
-int create_queue(char *path, int id);
+int get_queue(char *path, int id);
 
 typedef enum{FREE, BUSY} status_t;
 typedef struct {

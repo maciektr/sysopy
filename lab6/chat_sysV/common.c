@@ -12,7 +12,7 @@ char *get_homedir() {
     return homedir;
 }
 
-int create_queue(char *path, int id) {
+int get_queue(char *path, int id) {
     key_t key = ftok(path, id);
     assert(key != -1);
     // printf("KEY %d\n", key);
