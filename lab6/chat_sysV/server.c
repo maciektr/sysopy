@@ -15,10 +15,23 @@
 
 #include "common.h"
 
-void handle_msg(msg_t *buffer);
 void close_queue();
 void stop_sig();
 void init();
+
+// Msg handlers 
+void handle_msg(msg_t *buffer);
+// CONNECT
+int handle_connect(int first_id, int second_id);
+// INIT
+int register_client(int key);
+// STOP
+void remove_client(int id);
+// LIST
+void send_list(int key);
+// DISCONNECT
+int set_free(int id);
+
 
 int queue_id = -1;
 int active_clients = 0;
