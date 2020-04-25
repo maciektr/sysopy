@@ -57,7 +57,7 @@ void handle_msg(msg_t *buffer){
             send_list(buffer->sender_id);
             break;
         case CONNECT:
-            handle_connect(buffer->sender_id, buffer->integer_msg);
+            assert(handle_connect(buffer->sender_id, buffer->integer_msg) >= 0);
             break;
         case DISCONNECT:
             set_free(buffer->sender_id);
@@ -74,8 +74,8 @@ int handle_connect(int first_id, int second_id){
     int first_key = -1, second_key = -1;
     int st_i = -1, nd_i = -1;
     for(int i = 0; i < active_clients; i++){
-        if((clients[i].id == first_id || clients[i].id == second_id) && clients[i].status != FREE)
-            return -1;
+        // if((clients[i].id == first_id || clients[i].id == second_id) && clients[i].status != FREE)
+            // return -1;
         if(clients[i].id == first_id){
             first_key = clients[i].key;
             st_i = i;

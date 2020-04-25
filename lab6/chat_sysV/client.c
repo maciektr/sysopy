@@ -26,6 +26,7 @@ void init();
 void list_pretty_print(client clients[CLIENTS_MAX], int n);
 int handle_connected_cmd(char *cmd, int key);
 void item_pretty_print(int id, char *nick);
+void handle_connect(int friend_id);
 void handle_cmd(char *cmd);
 void list_clients();
 int int_len(int n);
@@ -33,6 +34,7 @@ void print_help(int mode);
 
 int main() {
     init();
+    printf("MY QUE: %d\n", cl_que);
     print_help(0);
     while(1){
         char cmd[CMD_LEN];
@@ -46,7 +48,10 @@ void handle_cmd(char *cmd){
     if (strcmp(cmd, "list") == 0){
         list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
-        // scanf
+        // int id = -1;
+        // puts("Please insert id of the client you want to connect with.");
+        // scanf("%d", &id);
+        handle_connect(-1);
     }else if(strcmp(cmd, "exit") == 0){
         exit(EXIT_SUCCESS);
     }else{
@@ -56,6 +61,7 @@ void handle_cmd(char *cmd){
 }
 
 void connected_mode(int key){
+    printf("CONNECTED TO: %d\n", key);
     assert(key >= 0);
     print_help(1);
 
@@ -64,13 +70,12 @@ void connected_mode(int key){
         scanf("%s", txt);
         if(txt[0]=='#' && handle_connected_cmd((txt+1), key) != 0)
             return;
-        
-        txtmsg_t buffer;
+        txtmsg_t buffer, got;
         buffer.mtype = 1;
         strcpy(buffer.text, txt);
         assert(msgsnd(key, &buffer, TXTMSG_T_LEN, QMOD) != -1);
-        assert(msgrcv(key, &buffer, TXTMSG_T_LEN, MSG_TYPE_URGENT, QMOD) != -1);
-        puts(buffer.text);
+        if(msgrcv(cl_que, &buffer, TXTMSG_T_LEN, MSG_TYPE_URGENT, QMOD ) != -1)
+            puts(buffer.text);
     }
 }
 
@@ -86,23 +91,19 @@ int handle_connected_cmd(char *cmd, int key){
     return 0;
 }
 
-void handle_connect(){
-    int friend_id = -1;
+void handle_connect(int friend_id){
     while(friend_id < 0){
         puts("Please insert id of the client you want to connect with.");
         scanf("%d", &friend_id);
     }
-
     msg_t buffer;
     set_msg(&buffer, my_id, CONNECT, friend_id);
     assert(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) != -1);
     assert(msgrcv(cl_que, &buffer, MSG_T_LEN, CONNECT, QMOD) != -1);
-    
     if(buffer.integer_msg == -1){
         puts("Connection failed. Please try again.");
         return;
     }
-
     connected_mode(buffer.integer_msg);
 }
 
@@ -168,7 +169,7 @@ void print_help(int mode){
         // not connected mode
         puts("Please insert one of the commands listed below:");
         puts("  - list - show all clients available.");
-        puts("  - connect %id - connect to client with id \"%id\"");
+        puts("  - connect - connect to another client with.");
         puts("  - exit - shutdown the program.");
     }else if(mode == 1){
         // connected mode
@@ -224,7 +225,7 @@ void stop_sig(){
     msg_t buffer;
     set_msg(&buffer, my_id, STOP, 0);
 
-    if(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) < 0)
+    if(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD | IPC_NOWAIT) < 0)
         exit(EXIT_FAILURE);
 
     exit(EXIT_SUCCESS);
