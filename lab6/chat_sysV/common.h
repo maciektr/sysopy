@@ -21,7 +21,7 @@ int create_queue(char *path, int id);
 typedef enum{FREE, BUSY} status_t;
 typedef struct {
     int id; 
-    // int key;
+    int key;
     status_t status;
 } client;
 

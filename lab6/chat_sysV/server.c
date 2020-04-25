@@ -22,7 +22,7 @@ void init();
 
 int queue_id = -1;
 int active_clients = 0;
-client clients[MSG_T_CLIENTS_MAX];
+client clients[CLIENTS_MAX];
 
 int main() {
     init();
@@ -36,31 +36,71 @@ int main() {
 
 void handle_msg(msg_t *buffer){
     switch(buffer->order){
+        case INIT:
+            register_client(buffer->integer_msg);
+            break;
         case LIST:
-            send_list(buffer->sender_key);
+            send_list(buffer->integer_msg);
             break;
         case CONNECT:
-
+            
             break;
         case DISCONNECT:
-
+            set_free(buffer->sender_id);
             break;
         case STOP:
-
+            remove_client(buffer->sender_id);
             break;
         case NONE:
-
             break;
     }
 }
 
+int register_client(int key){
+    if(active_clients >= CLIENTS_MAX)
+        return -1;
+    clients[active_clients].id = active_clients+1;
+    clients[active_clients].key = key;
+    clients[active_clients].status = FREE;
+    
+    msg_t buffer;
+    buffer.sender_id = 0;
+    buffer.order = INIT;
+    buffer.integer_msg = clients[active_clients].id;
+    active_clients++;
+
+    return msgsnd(key, &buffer, MSG_T_LEN, QMOD);
+}
+
+int set_free(int id){
+    for(int i = 0; i < active_clients; i++){
+        if(clients[i].id == id){
+            clients[i].status = FREE;
+            return 0;
+        }
+    }
+    return -1;
+}
+
+void remove_client(int id){
+    if(active_clients <= 0)
+        return;
+    for(int i = 0; i<active_clients; i++)
+        if(clients[i].id == id){
+            active_clients--;
+            clients[i] = clients[active_clients];
+        }
+}
+
 void send_list(int key){
     msg_t buffer;
-    buffer.sender_key = queue_id;
+    buffer.sender_id = 0;
     buffer.order = NONE;
     buffer.integer_msg = active_clients;
+    int ac_i = 0;
     for(int i = 0; i<active_clients; i++){
-        buffer.clients[i] = clients[i];
+        if(clients[i].status == FREE)
+            buffer.clients[ac_i++] = clients[i];
     }
     msgsnd(key, &buffer, MSG_T_LEN, QMOD);
 }
