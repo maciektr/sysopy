@@ -7,12 +7,13 @@
 #include <assert.h>
 #include <pwd.h>
 #include <sys/msg.h>
+
 #ifndef MSGMAX
 #define MSGMAX 4056
 #endif
-
 #define PROJECT_ID 244
 #define QMOD 0666
+#define CLIENTS_MAX MSG_T_CLIENTS_MAX
 
 char *get_homedir();
 int create_queue(char *path, int id);
@@ -20,16 +21,17 @@ int create_queue(char *path, int id);
 typedef enum{FREE, BUSY} status_t;
 typedef struct {
     int id; 
+    // int key;
     status_t status;
 } client;
 
 #define MSG_TYPE_URGENT (-1*(LONG_MAX-10))  
 // Server-client message format
-typedef enum {LIST, CONNECT, DISCONNECT, STOP, NONE} order_t;
+typedef enum {LIST, CONNECT, DISCONNECT, STOP, INIT, NONE} order_t;
 #define MSG_T_CLIENTS_MAX (((MSGMAX - sizeof(int) - sizeof(order_t) - sizeof(long))/sizeof(client))-4)
 typedef struct {
     long mtype;
-    int sender_key;
+    int sender_id;
     order_t order;
     long integer_msg;
     client clients[MSG_T_CLIENTS_MAX];
