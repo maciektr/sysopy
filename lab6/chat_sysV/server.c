@@ -54,7 +54,7 @@ void handle_msg(msg_t *buffer){
             register_client(buffer->integer_msg, buffer->clients[0].nick);
             break;
         case LIST:
-            send_list(buffer->integer_msg);
+            send_list(buffer->sender_id);
             break;
         case CONNECT:
             handle_connect(buffer->sender_id, buffer->integer_msg);
@@ -138,16 +138,21 @@ void remove_client(int id){
         }
 }
 
-void send_list(int key){
+void send_list(int id){
     msg_t buffer;
-    set_msg(&buffer, 0, NONE, active_clients);
 
     int ac_i = 0;
+    int key = -1;
     for(int i = 0; i<active_clients; i++){
-        if(clients[i].status == FREE)
+        if(clients[i].id == id)
+            key = clients[i].key;
+        else if(clients[i].status == FREE)
             buffer.clients[ac_i++] = clients[i];
     }
-    msgsnd(key, &buffer, MSG_T_LEN, QMOD);
+    
+    set_msg(&buffer, 0, LIST, ac_i);
+    assert(key != -1);
+    assert(msgsnd(key, &buffer, MSG_T_LEN, QMOD | IPC_NOWAIT) != -1);
 }
 
 void init(){
