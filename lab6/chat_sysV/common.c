@@ -18,3 +18,9 @@ int get_queue(char *path, int id) {
     // printf("KEY %d\n", key);
     return msgget(key, IPC_CREAT | QMOD);
 }
+
+void set_msg(msg_t *buffer, int sender_id, order_t order, int integer_msg){
+    buffer->mtype = order;
+    buffer->sender_id = sender_id;
+    buffer->integer_msg = integer_msg;
+}
