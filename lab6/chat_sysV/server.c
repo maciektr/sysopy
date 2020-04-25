@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
+#include <errno.h>
 #include <pwd.h>
 
 #include <sys/msg.h>
@@ -48,7 +49,7 @@ int main() {
 }
 
 void handle_msg(msg_t *buffer){
-    switch(buffer->order){
+    switch(buffer->mtype){
         case INIT:
             register_client(buffer->integer_msg, buffer->clients[0].nick);
             break;
@@ -88,17 +89,11 @@ int handle_connect(int first_id, int second_id){
         return -1;
 
     msg_t buffer;
-    buffer.sender_id = first_id;
-    buffer.order = CONNECT;
-    buffer.integer_msg = first_key;
-
+    set_msg(&buffer, first_id, CONNECT, first_key);
     if(msgsnd(second_key, &buffer, MSG_T_LEN, QMOD) < 0)
         return -1;
     
-    buffer.sender_id = second_id;
-    buffer.order = CONNECT;
-    buffer.integer_msg = second_key;
-
+    set_msg(&buffer, second_id, CONNECT, second_key);
     if(msgsnd(first_key, &buffer, MSG_T_LEN, QMOD) < 0)
         return -1;
 
@@ -116,12 +111,11 @@ int register_client(int key, char *nick){
     strcpy(clients[active_clients].nick, nick);
     
     msg_t buffer;
-    buffer.sender_id = 0;
-    buffer.order = INIT;
-    buffer.integer_msg = clients[active_clients].id;
+    set_msg(&buffer, 0, INIT, clients[active_clients].id);
     active_clients++;
 
-    return msgsnd(key, &buffer, MSG_T_LEN, QMOD);
+    assert(msgsnd(key, &buffer, MSG_T_LEN, QMOD | IPC_NOWAIT) != -1);
+    return 0;
 }
 
 int set_free(int id){
@@ -146,9 +140,8 @@ void remove_client(int id){
 
 void send_list(int key){
     msg_t buffer;
-    buffer.sender_id = 0;
-    buffer.order = NONE;
-    buffer.integer_msg = active_clients;
+    set_msg(&buffer, 0, NONE, active_clients);
+
     int ac_i = 0;
     for(int i = 0; i<active_clients; i++){
         if(clients[i].status == FREE)
