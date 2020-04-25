@@ -23,6 +23,12 @@ void stop_sig();
 void get_id();
 void init();
 
+void list_clients();
+void handle_cmd(char *cmd);
+void list_pretty_print(int id, char *nick);
+void print_help();
+
+
 int main() {
     init();
     print_help();
@@ -37,7 +43,7 @@ void handle_cmd(char *cmd){
     for(char *p = cmd; *p; ++p) *p = tolower(*p);
     
     if (strcmp(cmd, "list") == 0){
-        
+        list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
 
     }else if(strcmp(cmd, "exit") == 0){
@@ -46,6 +52,43 @@ void handle_cmd(char *cmd){
         print_help();
         return;
     }
+}
+void list_pretty_print(int id, char *nick){
+    if(nick == NULL){
+        int id_mlen = 0;
+        int tmp = CLIENTS_MAX;
+        while(tmp){
+            tmp/=10;
+            id_mlen++;
+        }
+        if(id_mlen < 3)
+            id_mlen = 3;
+        int len = NICK_LEN + id_mlen +5;
+        printf("|");
+        for(int i = 0; i<len -2; i++) printf("-");
+        char *txt = "| Clients list:";
+        printf("|\n%s",txt);
+        for(int i = 0 ; i<len - strlen(txt)-1; i++) printf(" ");
+        printf("|\n|");
+        for(int i = 0; i<len -2; i++) printf("-");
+        printf("|\n| id: ");
+        for(int i = 0; i<id_mlen - 3; i++) printf(" ");
+        printf(" | nick:");
+        for(int i = 0; i<NICK_LEN - 5; i++) printf(" ");
+        printf(" |\n");
+    }
+}
+void list_clients(){
+    msg_t buffer;
+    set_msg(&buffer, my_id, LIST, 0);
+ 
+    assert(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) != -1);
+    assert(msgrcv(cl_que, &buffer, MSG_T_LEN, MSG_TYPE_URGENT, QMOD) != -1);
+    
+    list_pretty_print(0,NULL);    
+    // for(int i = 0; i < buffer.integer_msg; i++){
+
+    // }
 }
 
 void print_help(){
@@ -59,13 +102,13 @@ void init(){
     atexit(close_queue);
     signal(SIGINT, stop_sig);
 
-    cl_que = get_queue(get_homedir(), IPC_PRIVATE);
+    cl_que = msgget(IPC_PRIVATE, QMOD);
     assert(cl_que != -1);
 
     srv_que = get_queue(get_homedir(), PROJECT_ID);
     assert(srv_que != -1);
     
-    char *nick = NULL;
+    char nick[NICK_LEN];
     puts("Please insert your nick.");
     scanf("%s", nick);
     while(strlen(nick) > NICK_LEN){
@@ -77,9 +120,7 @@ void init(){
 
 void get_id(char *nick){
     msg_t buffer;
-    buffer.sender_id = 0;
-    buffer.order = INIT;
-    buffer.integer_msg = cl_que;
+    set_msg(&buffer, 0, INIT, cl_que);
 
     client cl;
     assert(strlen(nick) < NICK_LEN);
@@ -101,9 +142,7 @@ void close_queue() {
 
 void stop_sig(){
     msg_t buffer;
-    buffer.sender_id = my_id;
-    buffer.order = STOP;
-    buffer.integer_msg = 0;
+    set_msg(&buffer, my_id, STOP, 0);
 
     if(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) < 0)
         exit(EXIT_FAILURE);
