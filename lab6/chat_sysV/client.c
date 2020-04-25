@@ -23,9 +23,10 @@ void stop_sig();
 void get_id();
 void init();
 
-void list_clients();
+void list_pretty_print(client clients[CLIENTS_MAX], int n);
+void item_pretty_print(int id, char *nick);
 void handle_cmd(char *cmd);
-void list_pretty_print(int id, char *nick);
+void list_clients();
 void print_help();
 
 
@@ -34,14 +35,13 @@ int main() {
     print_help();
     while(1){
         char cmd[CMD_LEN];
-        scanf("%s\n", cmd);
+        scanf("%s", cmd);
         handle_cmd(cmd);
     }
 }
 
 void handle_cmd(char *cmd){
     for(char *p = cmd; *p; ++p) *p = tolower(*p);
-    
     if (strcmp(cmd, "list") == 0){
         list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
@@ -53,42 +53,62 @@ void handle_cmd(char *cmd){
         return;
     }
 }
-void list_pretty_print(int id, char *nick){
-    if(nick == NULL){
-        int id_mlen = 0;
-        int tmp = CLIENTS_MAX;
-        while(tmp){
-            tmp/=10;
-            id_mlen++;
-        }
-        if(id_mlen < 3)
-            id_mlen = 3;
-        int len = NICK_LEN + id_mlen +5;
-        printf("|");
-        for(int i = 0; i<len -2; i++) printf("-");
-        char *txt = "| Clients list:";
-        printf("|\n%s",txt);
+
+int int_len(int n){
+    int res = 0; 
+    while(n){
+        n/=10;
+        res++;
+    }
+    return res;
+}
+
+void item_pretty_print(int id, char *nick){
+    int id_mlen = int_len(CLIENTS_MAX);
+    if(id_mlen < 3)
+        id_mlen = 3;
+    int len = NICK_LEN + id_mlen +7;
+
+    if(nick == NULL && id == 0){
+        item_pretty_print(-1, NULL);
+        char *txt = "| Free clients list:";
+        printf("%s", txt);
         for(int i = 0 ; i<len - strlen(txt)-1; i++) printf(" ");
         printf("|\n|");
         for(int i = 0; i<len -2; i++) printf("-");
-        printf("|\n| id: ");
+        printf("|\n| id:");
         for(int i = 0; i<id_mlen - 3; i++) printf(" ");
         printf(" | nick:");
         for(int i = 0; i<NICK_LEN - 5; i++) printf(" ");
         printf(" |\n");
+    } else if(nick == NULL && id == -1){
+        printf("|");
+        for(int i = 0; i<len -2; i++) printf("-");
+        printf("|\n");
+    } else {
+        printf("| %d",id);
+        for(int i = 0; i < id_mlen - int_len(id); i++) printf(" ");
+        printf(" | %s", nick);
+        for(int i = 0; i < NICK_LEN - strlen(nick); i++) printf(" ");
+        printf(" |\n");
     }
 }
+
+void list_pretty_print(client clients[CLIENTS_MAX], int n){
+    item_pretty_print(0,NULL);
+    for(int i = 0; i < n; i++)
+        item_pretty_print(clients[i].id, clients[i].nick);
+    item_pretty_print(-1,NULL);
+};  
+
 void list_clients(){
     msg_t buffer;
     set_msg(&buffer, my_id, LIST, 0);
  
     assert(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) != -1);
     assert(msgrcv(cl_que, &buffer, MSG_T_LEN, MSG_TYPE_URGENT, QMOD) != -1);
-    
-    list_pretty_print(0,NULL);    
-    // for(int i = 0; i < buffer.integer_msg; i++){
+    list_pretty_print(buffer.clients, buffer.integer_msg);
 
-    // }
 }
 
 void print_help(){
