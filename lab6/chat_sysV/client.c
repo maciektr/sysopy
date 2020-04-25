@@ -22,6 +22,14 @@ void init();
 
 int main() {
     init();
+    while(1){
+        
+    }
+}
+
+void print_help(){
+    puts("Please insert one of the commands listed below:");
+    puts("");
 
 }
 
@@ -34,20 +42,34 @@ void init(){
 
     srv_que = get_queue(get_homedir(), PROJECT_ID);
     assert(srv_que != -1);
-
-    get_id();
+    
+    char *nick = NULL;
+    puts("Please insert your nick.");
+    scanf("%s", nick);
+    while(strlen(nick) > NICK_LEN){
+        printf("Please insert valid nick. It can not be longer than %d\n", NICK_LEN);
+        scanf("%s", nick);
+    }
+    get_id(nick);
 }
 
-void get_id(){
+void get_id(char *nick){
     msg_t buffer;
     buffer.sender_id = 0;
     buffer.order = INIT;
     buffer.integer_msg = cl_que;
+
+    client cl;
+    assert(strlen(nick) < NICK_LEN);
+    strcpy(cl.nick, nick);
+    cl.key = cl_que;
+    cl.id = -1;
+    buffer.clients[0] = cl;
+    
     assert(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) != -1);
     assert(msgrcv(cl_que, &buffer, MSG_T_LEN, MSG_TYPE_URGENT, QMOD) != -1);
     my_id = buffer.integer_msg;
     assert(my_id != -1);
-
 }
 
 void close_queue() {

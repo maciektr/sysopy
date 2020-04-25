@@ -24,7 +24,7 @@ void handle_msg(msg_t *buffer);
 // CONNECT
 int handle_connect(int first_id, int second_id);
 // INIT
-int register_client(int key);
+int register_client(int key, char *nick);
 // STOP
 void remove_client(int id);
 // LIST
@@ -50,7 +50,7 @@ int main() {
 void handle_msg(msg_t *buffer){
     switch(buffer->order){
         case INIT:
-            register_client(buffer->integer_msg);
+            register_client(buffer->integer_msg, buffer->clients[0].nick);
             break;
         case LIST:
             send_list(buffer->integer_msg);
@@ -107,12 +107,13 @@ int handle_connect(int first_id, int second_id){
     return 0;    
 }
 
-int register_client(int key){
+int register_client(int key, char *nick){
     if(active_clients >= CLIENTS_MAX)
         return -1;
     clients[active_clients].id = active_clients+1;
     clients[active_clients].key = key;
     clients[active_clients].status = FREE;
+    strcpy(clients[active_clients].nick, nick);
     
     msg_t buffer;
     buffer.sender_id = 0;
