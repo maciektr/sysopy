@@ -85,20 +85,16 @@ int handle_connect(int first_id, int second_id){
             nd_i = i;
         }
     }
-    if(first_key < 0 || second_key < 0)
+
+    if(first_key < 0)
         return -1;
 
     msg_t buffer;
-    set_msg(&buffer, first_id, CONNECT, first_key);
-    if(msgsnd(second_key, &buffer, MSG_T_LEN, QMOD) < 0)
-        return -1;
-    
-    set_msg(&buffer, second_id, CONNECT, second_key);
+    set_msg(&buffer, second_id, CONNECT, second_key < 0 ? -1:second_key);
     if(msgsnd(first_key, &buffer, MSG_T_LEN, QMOD) < 0)
         return -1;
 
     clients[st_i].status = BUSY;
-    clients[nd_i].status = BUSY;
     return 0;    
 }
 
