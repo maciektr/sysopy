@@ -14,6 +14,7 @@
 #define PROJECT_ID 244
 #define QMOD 0666
 #define CLIENTS_MAX MSG_T_CLIENTS_MAX
+#define TEXT_MAX_LEN TXTMSG_T_LEN
 #define NICK_LEN 15 
 
 char *get_homedir();
