@@ -5,12 +5,15 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <signal.h>
+#include <ctype.h>
 
 #include <sys/msg.h>
 #include <sys/ipc.h>
 //- msgget, msgctl, msgsnd, msgrcv, ftok
 
 #include "common.h"
+#define CMD_LEN 100
+
 int cl_que = -1;
 int srv_que = -1;
 int my_id = -1;
@@ -22,15 +25,34 @@ void init();
 
 int main() {
     init();
+    print_help();
     while(1){
+        char cmd[CMD_LEN];
+        scanf("%s\n", cmd);
+        handle_cmd(cmd);
+    }
+}
+
+void handle_cmd(char *cmd){
+    for(char *p = cmd; *p; ++p) *p = tolower(*p);
+    
+    if (strcmp(cmd, "list") == 0){
         
+    }else if(strcmp(cmd, "connect") == 0){
+
+    }else if(strcmp(cmd, "exit") == 0){
+        exit(EXIT_SUCCESS);
+    }else{
+        print_help();
+        return;
     }
 }
 
 void print_help(){
     puts("Please insert one of the commands listed below:");
-    puts("");
-
+    puts("  - list - show all clients available.");
+    puts("  - connect %id - connect to client with id \"%id\"");
+    puts("  - exit - to shutdown the program.");
 }
 
 void init(){
