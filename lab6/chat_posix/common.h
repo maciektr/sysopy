@@ -11,6 +11,7 @@
 #define MSG_MAX_SIZE 8192
 #define MSG_MAX_N 10
 #define NICK_LEN 15 
+#define CLQ_NAME_LEN (NICK_LEN + 10)
 
 int get_queue(char *name, int mode);
 
