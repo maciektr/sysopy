@@ -27,24 +27,57 @@ void list_pretty_print(client clients[CLIENTS_MAX], int n);
 int handle_connected_cmd(char *cmd, int key);
 void item_pretty_print(int id, char *nick);
 void handle_connect(int friend_id);
+void remove_enter(char *txt);
 void handle_cmd(char *cmd);
+void print_help(int mode);
+void cut_word(char *cmd);
 void list_clients();
 int int_len(int n);
-void print_help(int mode);
+void check_queue();
+void clear_stdin();
 
 int main() {
     init();
     print_help(0);
+    clear_stdin();
     while(1){
+        check_queue();
         printf("# ");
         char cmd[CMD_LEN];
-        scanf("%s", cmd);
+        fgets(cmd, CMD_LEN, stdin);
+        if(cmd[0] == 10)
+            continue;
+        remove_enter(cmd);
         handle_cmd(cmd);
     }
 }
 
+void check_queue(){
+    msg_t buffer;
+    if(msgrcv(cl_que, &buffer, MSG_T_LEN, MSG_TYPE_URGENT, QMOD | IPC_NOWAIT) != -1){
+        switch (buffer.mtype)
+        {
+        case CONNECT:
+            printf("Another client (nick: %s, id: %d) is connecting to you.\n", buffer.clients[0].nick, buffer.clients[0].id);
+            break;
+        case STOP:
+            puts("# Server is shutting down.");
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void remove_enter(char *txt){
+    for(int i = 0; i<strlen(txt); i++)
+        txt[i] = txt[i] == 10 ? ' ':txt[i];
+}
+
 void handle_cmd(char *cmd){
-    for(char *p = cmd; *p; ++p) *p = tolower(*p);
+    cut_word(cmd);
+    
     if (strcmp(cmd, "list") == 0){
         list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
@@ -63,11 +96,15 @@ void read_texts(){
         puts(buffer.text);
 }
 
+void clear_stdin(){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
+}
+
 void connected_mode(int key){
     assert(key >= 0);
     print_help(1);
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF) { }
+    clear_stdin();
 
     while(1){
         read_texts();
@@ -76,8 +113,7 @@ void connected_mode(int key){
         fgets(txt, TEXT_MAX_LEN, stdin);
         if(txt[0] == 10)
             continue;
-        for(int i = 0; i<strlen(txt); i++)
-            txt[i] = txt[i] == 10 ? ' ':txt[i];
+        remove_enter(txt);
         if(txt[0]=='#' && handle_connected_cmd((txt+1), key) != 0){
             print_help(0);
             return;
@@ -85,15 +121,20 @@ void connected_mode(int key){
         txtmsg_t buffer;
         buffer.mtype = 1;
         strcpy(buffer.text, txt);
-        assert(msgsnd(key, &buffer, TXTMSG_T_LEN, QMOD) != -1);
+        msgsnd(key, &buffer, TXTMSG_T_LEN, QMOD | IPC_NOWAIT);
     }
 }
 
-int handle_connected_cmd(char *cmd, int key){
+void cut_word(char *cmd){
     for(char *p = cmd; *p; p++)
         if(!isalpha(*p))
             *p = '\0';
-    
+        else
+            *p = tolower(*p);
+}
+
+int handle_connected_cmd(char *cmd, int key){
+    cut_word(cmd);
     if(strcmp(cmd, "exit") == 0){
         exit(EXIT_SUCCESS);
     } else if(strcmp(cmd, "disconnect") == 0){

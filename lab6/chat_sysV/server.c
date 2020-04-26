@@ -74,10 +74,12 @@ int handle_connect(int first_id, int second_id){
     printf("# Connect request from %d to %d\n", first_id, second_id);
     int first_key = -1, second_key = -1;
     int st_i = -1, nd_i = -1;
+    char *first_nick = NULL;
     for(int i = 0; i < active_clients; i++){
         if(clients[i].id == first_id){
             first_key = clients[i].key;
             st_i = i;
+            first_nick = clients[i].nick;
         }
         if(clients[i].id == second_id){
             second_key = clients[i].key;
@@ -91,6 +93,14 @@ int handle_connect(int first_id, int second_id){
     msg_t buffer;
     set_msg(&buffer, second_id, CONNECT, second_key < 0 ? -1:second_key);
     if(msgsnd(first_key, &buffer, MSG_T_LEN, QMOD) < 0)
+        return -1;
+    
+    set_msg(&buffer, first_id, CONNECT, first_key);
+    client cl;
+    cl.id = first_id;
+    strcpy(cl.nick, first_nick);
+    buffer.clients[0]=cl;
+    if(msgsnd(second_key, &buffer, MSG_T_LEN, QMOD) < 0)
         return -1;
 
     clients[st_i].status = BUSY;
