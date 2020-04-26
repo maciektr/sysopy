@@ -20,6 +20,7 @@ void handle_msg(msg_t *msg);
 int register_client(mqd_t key, char *nick);
 void send_list(int id);
 int set_free(int id);
+void remove_client(int id);
 
 mqd_t queue_id = -1;
 int active_clients = 0;
@@ -49,7 +50,7 @@ void handle_msg(msg_t *msg){
             set_free(msg->sender_id);
             break;
         case STOP:
-            // remove_client(buffer->sender_id);
+            remove_client(msg->sender_id);
             break;
         default:
             break;
@@ -104,6 +105,17 @@ int set_free(int id){
         }
     }
     return -1;
+}
+
+void remove_client(int id){
+    printf("# Client %d is removed from the server\n", id);
+    if(active_clients <= 0)
+        return;
+    for(int i = 0; i<active_clients; i++)
+        if(clients[i].id == id){
+            active_clients--;
+            clients[i] = clients[active_clients];
+        }
 }
 
 void init(){
