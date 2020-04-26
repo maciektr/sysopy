@@ -11,8 +11,8 @@ int get_queue(char *name, int mode) {
     return mq_open(name, mode | O_CREAT, QMOD, &attr);
 }
 
-// void set_msg(msg_t *buffer, int sender_id, order_t order, int integer_msg){
-//     buffer->mtype = order;
-//     buffer->sender_id = sender_id;
-//     buffer->integer_msg = integer_msg;
-// }
+void set_msg(msg_t *buffer, int sender_id, order_t order, int integer_msg){
+    buffer->order = order;
+    buffer->sender_id = sender_id;
+    buffer->integer_msg = integer_msg;
+}
