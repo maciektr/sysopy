@@ -19,6 +19,7 @@ void init();
 void handle_msg(msg_t *msg);
 int register_client(mqd_t key, char *nick);
 void send_list(int id);
+int set_free(int id);
 
 mqd_t queue_id = -1;
 int active_clients = 0;
@@ -45,7 +46,7 @@ void handle_msg(msg_t *msg){
             // assert(handle_connect(buffer->sender_id, buffer->integer_msg) >= 0);
             break;
         case DISCONNECT:
-            // set_free(buffer->sender_id);
+            set_free(msg->sender_id);
             break;
         case STOP:
             // remove_client(buffer->sender_id);
@@ -92,6 +93,17 @@ void send_list(int id){
     set_msg(&buffer.msg, 0, LIST, ac_i);
     assert(key != -1);
     assert(mq_send(key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+}
+
+int set_free(int id){
+    printf("# Client %d is now free for connections.\n", id);
+    for(int i = 0; i < active_clients; i++){
+        if(clients[i].id == id){
+            clients[i].status = FREE;
+            return 0;
+        }
+    }
+    return -1;
 }
 
 void init(){
