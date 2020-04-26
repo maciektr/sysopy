@@ -11,16 +11,16 @@ CLIENT_OUT = client.out
 COMMON_FILE = common.c
 
 main: clean
-	$(CC) -D_NDEBUG $(SERVER_FILE) $(COMMON_FILE) -o $(SERVER_OUT)
-	$(CC) -D_NDEBUG $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT)
+	$(CC) -D_NDEBUG $(SERVER_FILE) $(COMMON_FILE) -o $(SERVER_OUT) -lrt
+	$(CC) -D_NDEBUG $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT) -lrt
 
 debug:
-	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(SERVER_FILE) $(COMMON_FILE) -o $(SERVER_OUT)
-	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT)
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(SERVER_FILE) $(COMMON_FILE) -o $(SERVER_OUT) -lrt
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT) -lrt
 
 debug_fast:
-	$(CC) -Wall -Wextra -Wshadow -pedantic $(SERVER_FILE) $(COMMON_FILE) -o $(SERVER_OUT)
-	$(CC) -Wall -Wextra -Wshadow -pedantic $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT)
+	$(CC) -Wall -Wextra -Wshadow -pedantic $(SERVER_FILE) $(COMMON_FILE) -o $(SERVER_OUT) -lrt
+	$(CC) -Wall -Wextra -Wshadow -pedantic $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT) -lrt
 
 clean:
 	rm -f $(SERVER_OUT) $(CLIENT_OUT) *.o *.out
