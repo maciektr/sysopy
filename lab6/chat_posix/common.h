@@ -7,8 +7,9 @@
 
 #define SERVER_QUE_NAME "/chat_server_que"
 #define QMOD (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
-#define MSG_MAX_N 10
+#define CLIENTS_MAX MSG_T_CLIENTS_MAX
 #define MSG_MAX_SIZE 8192
+#define MSG_MAX_N 10
 #define NICK_LEN 15 
 
 int get_queue(char *name, int mode);
@@ -16,7 +17,7 @@ int get_queue(char *name, int mode);
 typedef enum{FREE, BUSY} status_t;
 typedef struct {
     int id; 
-    int key;
+    mqd_t key;
     status_t status;
     char nick[NICK_LEN];
 } client;
