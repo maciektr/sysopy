@@ -39,7 +39,7 @@ void handle_msg(msg_t *msg){
             register_client(msg->integer_msg, msg->clients[0].nick);
             break;
         case LIST:
-            // send_list(buffer->sender_id);
+            send_list(msg->sender_id);
             break;
         case CONNECT:
             // assert(handle_connect(buffer->sender_id, buffer->integer_msg) >= 0);
@@ -113,10 +113,10 @@ void atexit_handle(){
         return;
     assert(mq_close(queue_id) == 0);
 
-    // for(int i = 0; i<active_clients; i++){
-    //     msg_t buffer;
-    //     set_msg(&buffer, 0, STOP, 0);
-    //     assert(msgsnd(clients[i].key, &buffer, MSG_T_LEN, QMOD) != -1);
-    // }
+    for(int i = 0; i<active_clients; i++){
+        msg_buffer_t buffer;
+        set_msg(&buffer.msg, 0, STOP, 0);
+        assert(mq_send(clients[i].key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+    }
     assert(mq_unlink(SERVER_QUE_NAME) == 0);
 }
