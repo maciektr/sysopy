@@ -16,18 +16,45 @@ void atexit_handle();
 void stop_sig();
 void init();
 
-int queue_id = -1;
+void handle_msg(msq_buffer_t *buffer);
+
+
+mqd_t queue_id = -1;
+int active_clients = 0;
+client clients[CLIENTS_MAX];
 
 int main(){
     init();
-    // msg_t buffer;
     while(1){
-        // int len;
-        // assert((len = msgrcv(queue_id, &buffer, MSG_T_LEN, MSG_TYPE_URGENT, QMOD)) != -1);
-        // handle_msg(&buffer);
+        msq_buffer_t buffer;
+        assert(mq_receive(queue_id, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
+        handle_msg(&buffer);
     }
-
 }
+
+void handle_msg(msq_buffer_t *buffer){
+    switch(buffer->msg.order){
+        case INIT:
+            // register_client(buffer->integer_msg, buffer->clients[0].nick);
+            break;
+        case LIST:
+            // send_list(buffer->sender_id);
+            break;
+        case CONNECT:
+            // assert(handle_connect(buffer->sender_id, buffer->integer_msg) >= 0);
+            break;
+        case DISCONNECT:
+            // set_free(buffer->sender_id);
+            break;
+        case STOP:
+            // remove_client(buffer->sender_id);
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 void init(){
     atexit(atexit_handle);
