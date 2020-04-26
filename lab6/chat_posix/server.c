@@ -17,7 +17,8 @@ void stop_sig();
 void init();
 
 void handle_msg(msg_t *msg);
-
+int register_client(mqd_t key, char *nick);
+void send_list(int id);
 
 mqd_t queue_id = -1;
 int active_clients = 0;
@@ -75,6 +76,23 @@ int register_client(mqd_t key, char *nick){
     return 0;
 }
 
+void send_list(int id){
+    printf("# Sending clients list to client %d.\n", id);
+    msg_buffer_t buffer;
+
+    int ac_i = 0;
+    int key = -1;
+    for(int i = 0; i<active_clients; i++){
+        if(clients[i].id == id)
+            key = clients[i].key;
+        else if(clients[i].status == FREE)
+            buffer.msg.clients[ac_i++] = clients[i];
+    }
+    
+    set_msg(&buffer.msg, 0, LIST, ac_i);
+    assert(key != -1);
+    assert(mq_send(key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+}
 
 void init(){
     atexit(atexit_handle);
