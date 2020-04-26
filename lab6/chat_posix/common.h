@@ -36,5 +36,6 @@ typedef union {
     message_t msg;
 } msg_buffer_t;
 #define msg_t message_t
+void set_msg(msg_t *buffer, int sender_id, order_t order, int integer_msg);
 
 #endif //_COMMON_H
