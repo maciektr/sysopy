@@ -309,6 +309,7 @@ void init(){
 void get_id(char *nick){
     msg_buffer_t buffer;
     set_msg(&buffer.msg, 0, INIT, cl_que);
+    strcpy(buffer.msg.sender_name, clq_name);
 
     client cl;
     assert(strlen(nick) < NICK_LEN);

@@ -25,10 +25,11 @@ typedef struct {
 
 
 typedef enum {__, STOP, DISCONNECT, LIST, CONNECT, INIT, NONE} order_t;
-#define MSG_T_CLIENTS_MAX (((MSG_MAX_SIZE - sizeof(int) - sizeof(order_t) - sizeof(long))/sizeof(client))-4)
+#define MSG_T_CLIENTS_MAX (((MSG_MAX_SIZE - sizeof(int) -CLQ_NAME_LEN - sizeof(order_t) - sizeof(long))/sizeof(client))-4)
 typedef struct {
     order_t order;
     int sender_id;
+    char sender_name[CLQ_NAME_LEN];
     long integer_msg;
     client clients[MSG_T_CLIENTS_MAX];
 } message_t;
