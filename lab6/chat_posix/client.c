@@ -23,12 +23,14 @@ void get_id();
 void init();
 
 void print_help(int mode);
+void handle_cmd(char *cmd);
 
 // Helper functions
 void clear_stdin();
 char random_alpha();
 void get_clq_name(char *to, char *nick);
 void remove_enter(char *txt);
+void cut_word(char *cmd);
 
 int main(){
     srand(time(NULL));
@@ -43,10 +45,24 @@ int main(){
         if(cmd[0] == 10)
             continue;
         remove_enter(cmd);
-        // handle_cmd(cmd);
+        handle_cmd(cmd);
     }
 }
 
+void handle_cmd(char *cmd){
+    cut_word(cmd);
+    
+    if (strcmp(cmd, "list") == 0){
+        // list_clients();                
+    }else if(strcmp(cmd, "connect") == 0){
+        // handle_connect(-1);
+    }else if(strcmp(cmd, "exit") == 0){
+        exit(EXIT_SUCCESS);
+    }else{
+        print_help(0);
+        return;
+    }
+}
 
 void print_help(int mode){
     if(mode == 0){
@@ -64,6 +80,14 @@ void print_help(int mode){
 }
 
 // Helper functions
+
+void cut_word(char *cmd){
+    for(char *p = cmd; *p; p++)
+        if(!isalpha(*p))
+            *p = '\0';
+        else
+            *p = tolower(*p);
+}
 
 void remove_enter(char *txt){
     for(int i = 0; i<strlen(txt); i++)
