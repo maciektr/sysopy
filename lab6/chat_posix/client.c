@@ -38,7 +38,7 @@ int main(){
     print_help(0);
     clear_stdin();
     while(1){
-        // check_queue();
+        check_queue();
         printf("# ");
         char cmd[CMD_LEN];
         fgets(cmd, CMD_LEN, stdin);
@@ -46,6 +46,25 @@ int main(){
             continue;
         remove_enter(cmd);
         handle_cmd(cmd);
+    }
+}
+
+void check_queue(){
+    msg_buffer_t buffer;
+    // TODO: IPC_NOWAIT?
+    if(mq_receive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL) != -1){
+        switch (buffer.msg.order)
+        {
+        case CONNECT:
+            printf("Another client (nick: %s, id: %d) is connecting to you.\n", buffer.clients[0].nick, buffer.clients[0].id);
+            break;
+        case STOP:
+            puts("# Server is shutting down.");
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            break;
+        }
     }
 }
 
