@@ -54,6 +54,26 @@ void handle_msg(msg_t *msg){
     }
 }
 
+int register_client(mqd_t key, char *nick){
+    if(active_clients >= CLIENTS_MAX){
+        printf("# Register client request failed with too many clients.\n");
+        msg_buffer_t buffer;
+        set_msg(&buffer.msg, 0, INIT, -1);
+        assert(mq_send(key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+        return -1;
+    }
+    clients[active_clients].id = active_clients+1;
+    printf("# Registering client (nick: %s, id: %d)\n", nick, clients[active_clients].id);
+    clients[active_clients].key = key;
+    clients[active_clients].status = FREE;
+    strcpy(clients[active_clients].nick, nick);
+    
+    msg_buffer_t buffer;
+    set_msg(&buffer.msg, 0, INIT, clients[active_clients].id);
+    assert(mq_send(key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+
+    return 0;
+}
 
 
 void init(){
