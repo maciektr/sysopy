@@ -39,7 +39,7 @@ int main(){
 void handle_msg(msg_t *msg){
     switch(msg->order){
         case INIT:
-            register_client(msg->sender_name, msg->clients[0].nick);
+            register_client(msg->clients[0].que_name, msg->clients[0].nick);
             break;
         case LIST:
             send_list(msg->sender_id);
@@ -70,6 +70,7 @@ int register_client(char *name, char *nick){
     printf("# Registering client (nick: %s, id: %d)\n", nick, clients[active_clients].id);
     clients[active_clients].key = get_queue(name, O_WRONLY);
     clients[active_clients].status = FREE;
+    strcpy(clients[active_clients].que_name, name);
     strcpy(clients[active_clients].nick, nick);
     
     msg_buffer_t buffer;
@@ -102,6 +103,8 @@ int handle_connect(int first_id, int second_id){
     int first_key = -1, second_key = -1;
     int st_i = -1, nd_i = -1;
     char *first_nick = NULL;
+    char *second_que = NULL;
+    
     for(int i = 0; i < active_clients; i++){
         if(clients[i].id == first_id){
             first_key = clients[i].key;
@@ -111,19 +114,24 @@ int handle_connect(int first_id, int second_id){
         if(clients[i].id == second_id){
             second_key = clients[i].key;
             nd_i = i;
+            second_que = clients[i].que_name;
         }
     }
 
     if(first_key < 0)
         return -1;
 
-    msg_buffer_t buffer;
-    set_msg(&buffer.msg, second_id, CONNECT, second_key < 0 ? -1:second_key);
+    msg_buffer_t buffer;    
+    client cl;
+    cl.id = second_id;
+    strcpy(cl.que_name, second_que);
+    buffer.msg.clients[0]=cl;
+    set_msg(&buffer.msg, second_id, CONNECT, second_key >= 0 ? 0:-1);
+
     if(mq_send(first_key, buffer.buffer, MSG_MAX_SIZE, 0) < 0)
         return -1;
     
     set_msg(&buffer.msg, first_id, CONNECT, first_key);
-    client cl;
     cl.id = first_id;
     strcpy(cl.nick, first_nick);
     buffer.msg.clients[0]=cl;

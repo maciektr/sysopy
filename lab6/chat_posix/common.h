@@ -20,6 +20,7 @@ typedef struct {
     int id; 
     mqd_t key;
     status_t status;
+    char que_name[CLQ_NAME_LEN];
     char nick[NICK_LEN];
 } client;
 
@@ -30,7 +31,6 @@ typedef enum {__, STOP, DISCONNECT, LIST, CONNECT, INIT, NONE} order_t;
 typedef struct {
     order_t order;
     int sender_id;
-    char sender_name[CLQ_NAME_LEN];
     long integer_msg;
     client clients[MSG_T_CLIENTS_MAX];
 } message_t;

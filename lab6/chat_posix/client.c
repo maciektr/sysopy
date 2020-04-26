@@ -141,13 +141,14 @@ void handle_connect(int friend_id){
         puts("Connection failed. Please try again.");
         return;
     }
-    connected_mode(buffer.msg.integer_msg);
+    int key = get_queue(buffer.msg.clients[0].que_name, O_RDONLY);
+    connected_mode(key);
 }
 
 // Connected mode functions
 
 void connected_mode(int key){
-    assert(key >= 0);
+    assert(key != -1);
     print_help(1);
     clear_stdin();
 
@@ -308,13 +309,13 @@ void init(){
 void get_id(char *nick){
     msg_buffer_t buffer;
     set_msg(&buffer.msg, 0, INIT, cl_que);
-    strcpy(buffer.msg.sender_name, clq_name);
 
     client cl;
     assert(strlen(nick) < NICK_LEN);
     strcpy(cl.nick, nick);
     cl.key = cl_que;
     cl.id = -1;
+    strcpy(cl.que_name, clq_name);
     buffer.msg.clients[0] = cl;
     
     assert(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
