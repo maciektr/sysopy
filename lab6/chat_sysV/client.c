@@ -231,16 +231,17 @@ void get_id(char *nick){
 }
 
 void close_queue() {
-    if (cl_que != -1)
-        assert(msgctl(cl_que, IPC_RMID, NULL) != -1);
-}
-
-void stop_sig(){
     msg_t buffer;
     set_msg(&buffer, my_id, STOP, 0);
 
     if(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD | IPC_NOWAIT) < 0)
         exit(EXIT_FAILURE);
 
+
+    if (cl_que != -1)
+        assert(msgctl(cl_que, IPC_RMID, NULL) != -1);
+}
+
+void stop_sig(){
     exit(EXIT_SUCCESS);
 }
