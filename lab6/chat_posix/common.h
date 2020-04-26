@@ -23,5 +23,17 @@ typedef struct {
 
 
 typedef enum {__, STOP, DISCONNECT, LIST, CONNECT, INIT, NONE} order_t;
+#define MSG_T_CLIENTS_MAX (((MSG_MAX_SIZE - sizeof(int) - sizeof(order_t) - sizeof(long))/sizeof(client))-4)
+typedef struct {
+    order_t order;
+    int sender_id;
+    long integer_msg;
+    client clients[MSG_T_CLIENTS_MAX];
+} message_t;
+typedef union {
+    char buffer[MSG_MAX_SIZE];
+    message_t msg;
+} msq_buffer_t;
+#define msq_t message_t
 
 #endif //_COMMON_H
