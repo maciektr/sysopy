@@ -119,15 +119,18 @@ void get_id(char *nick){
 }
 
 void atexit_handle() {
-    // msg_t buffer;
-    // set_msg(&buffer, my_id, STOP, 0);
+    msg_buffer_t buffer;
+    set_msg(&buffer.msg, my_id, STOP, 0);
 
-    // if(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD | IPC_NOWAIT) < 0)
-    //     exit(EXIT_FAILURE);
+    if(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) < 0)
+        exit(EXIT_FAILURE);
 
 
-    // if (cl_que != -1)
-    //     assert(msgctl(cl_que, IPC_RMID, NULL) != -1);
+    if (cl_que != -1){
+        //TODO: Check if unlink possible?
+        assert(mq_close(cl_que) == 0);
+        assert(mq_unlink(cl_que) == 0);
+    }
 }
 
 void stop_sig(){

@@ -180,5 +180,6 @@ void atexit_handle(){
         set_msg(&buffer.msg, 0, STOP, 0);
         assert(mq_send(clients[i].key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
     }
+    //TODO: Check if unlink possible?
     assert(mq_unlink(SERVER_QUE_NAME) == 0);
 }
