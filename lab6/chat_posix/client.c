@@ -30,6 +30,7 @@ void check_queue();
 // Command handlers
 void handle_cmd(char *cmd);
 void list_clients();
+void handle_connect(int friend_id);
 
 // List helper functions
 void list_pretty_print(client clients[CLIENTS_MAX], int n);
@@ -104,7 +105,7 @@ void handle_cmd(char *cmd){
     if (strcmp(cmd, "list") == 0){
         list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
-        // handle_connect(-1);
+        handle_connect(-1);
     }else if(strcmp(cmd, "exit") == 0){
         exit(EXIT_SUCCESS);
     }else{
@@ -122,6 +123,25 @@ void list_clients(){
 
     list_pretty_print(buffer.msg.clients, buffer.msg.integer_msg);
 }
+
+void handle_connect(int friend_id){
+    while(friend_id < 0){
+        puts("Please insert id of the client you want to connect with.");
+        scanf("%d", &friend_id);
+    }
+    msg_buffer_t buffer;
+    set_msg(&buffer.msg, my_id, CONNECT, friend_id);
+    assert(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+    assert(mq_receive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
+    if(buffer.msg.integer_msg == -1){
+        puts("Connection failed. Please try again.");
+        return;
+    }
+    connected_mode(buffer.msg.integer_msg);
+}
+
+// Connected mode functions
+
 
 // List helper functions
 
