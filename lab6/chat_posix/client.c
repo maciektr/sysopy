@@ -32,6 +32,11 @@ void handle_cmd(char *cmd);
 void list_clients();
 void handle_connect(int friend_id);
 
+// Connected mode functions
+void connected_mode(int key);
+int handle_connected_cmd(char *cmd, int key);
+void read_texts();
+
 // List helper functions
 void list_pretty_print(client clients[CLIENTS_MAX], int n);
 void item_pretty_print(int id, char *nick);
@@ -142,6 +147,48 @@ void handle_connect(int friend_id){
 
 // Connected mode functions
 
+void connected_mode(int key){
+    assert(key >= 0);
+    print_help(1);
+    clear_stdin();
+
+    while(1){
+        read_texts();
+        printf("> ");
+        char txt[MSG_MAX_SIZE];
+        fgets(txt, MSG_MAX_SIZE, stdin);
+        if(txt[0] == 10)
+            continue;
+        remove_enter(txt);
+        if(txt[0]=='#' && handle_connected_cmd((txt+1), key) != 0){
+            print_help(0);
+            return;
+        }
+        char buffer[MSG_MAX_SIZE];
+        strcpy(buffer, txt);
+        assert(mq_send(key, buffer, MSG_MAX_SIZE, 0) == 0);
+    }
+}
+
+
+int handle_connected_cmd(char *cmd, int key){
+    cut_word(cmd);
+    if(strcmp(cmd, "exit") == 0){
+        exit(EXIT_SUCCESS);
+    } else if(strcmp(cmd, "disconnect") == 0){
+        msg_buffer_t buffer;
+        set_msg(&buffer.msg, my_id, DISCONNECT, 0);
+        assert(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+        return DISCONNECT;
+    }
+    return 0;
+}
+
+void read_texts(){
+    char buffer[MSG_MAX_SIZE];
+    while(mq_receive(cl_que, buffer, MSG_MAX_SIZE, NULL) != -1)
+        puts(buffer);
+}
 
 // List helper functions
 
