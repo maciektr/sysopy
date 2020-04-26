@@ -24,11 +24,17 @@ void init();
 
 void print_help(int mode);
 
+// Helper functions
+void clear_stdin();
+char random_alpha();
+void get_clq_name(char *to, char *nick);
+
+
 int main(){
     srand(time(NULL));
     init();
     print_help(0);
-    // clear_stdin();
+    clear_stdin();
     while(1){
         // check_queue();
         // printf("# ");
@@ -40,6 +46,7 @@ int main(){
         // handle_cmd(cmd);
     }
 }
+
 
 void print_help(int mode){
     if(mode == 0){
@@ -54,6 +61,13 @@ void print_help(int mode){
         puts("  - #disconnect - to close your connection");
         puts("  - #exit - shutdown the program.");
     }
+}
+
+// Helper functions
+
+void clear_stdin(){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
 char random_alpha(){
@@ -78,6 +92,8 @@ void get_clq_name(char *to, char *nick){
     while(i < CLQ_NAME_LEN)
         to[i++] = random_alpha();
 }
+
+// Client init
 
 void init(){
     atexit(atexit_handle);
