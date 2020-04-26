@@ -24,6 +24,7 @@ void init();
 
 void print_help(int mode);
 void handle_cmd(char *cmd);
+void check_queue();
 
 // Helper functions
 void clear_stdin();
@@ -49,6 +50,8 @@ int main(){
     }
 }
 
+// Program functions
+
 void check_queue(){
     msg_buffer_t buffer;
     // TODO: IPC_NOWAIT?
@@ -68,21 +71,6 @@ void check_queue(){
     }
 }
 
-void handle_cmd(char *cmd){
-    cut_word(cmd);
-    
-    if (strcmp(cmd, "list") == 0){
-        // list_clients();                
-    }else if(strcmp(cmd, "connect") == 0){
-        // handle_connect(-1);
-    }else if(strcmp(cmd, "exit") == 0){
-        exit(EXIT_SUCCESS);
-    }else{
-        print_help(0);
-        return;
-    }
-}
-
 void print_help(int mode){
     if(mode == 0){
         // not connected mode
@@ -95,6 +83,23 @@ void print_help(int mode){
         puts("You can insert one of the commands listed below. Do not forget the \"#\" prefix.");
         puts("  - #disconnect - to close your connection");
         puts("  - #exit - shutdown the program.");
+    }
+}
+
+//Command handlers
+
+void handle_cmd(char *cmd){
+    cut_word(cmd);
+    
+    if (strcmp(cmd, "list") == 0){
+        // list_clients();                
+    }else if(strcmp(cmd, "connect") == 0){
+        // handle_connect(-1);
+    }else if(strcmp(cmd, "exit") == 0){
+        exit(EXIT_SUCCESS);
+    }else{
+        print_help(0);
+        return;
     }
 }
 
