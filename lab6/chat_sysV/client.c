@@ -34,9 +34,9 @@ void print_help(int mode);
 
 int main() {
     init();
-    printf("MY QUE: %d\n", cl_que);
     print_help(0);
     while(1){
+        printf("# ");
         char cmd[CMD_LEN];
         scanf("%s", cmd);
         handle_cmd(cmd);
@@ -48,9 +48,6 @@ void handle_cmd(char *cmd){
     if (strcmp(cmd, "list") == 0){
         list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
-        // int id = -1;
-        // puts("Please insert id of the client you want to connect with.");
-        // scanf("%d", &id);
         handle_connect(-1);
     }else if(strcmp(cmd, "exit") == 0){
         exit(EXIT_SUCCESS);
@@ -60,26 +57,43 @@ void handle_cmd(char *cmd){
     }
 }
 
+void read_texts(){
+    txtmsg_t buffer;
+    while(msgrcv(cl_que, &buffer, TXTMSG_T_LEN, MSG_TYPE_URGENT, QMOD | IPC_NOWAIT) != -1)
+        puts(buffer.text);
+}
+
 void connected_mode(int key){
-    printf("CONNECTED TO: %d\n", key);
     assert(key >= 0);
     print_help(1);
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
 
     while(1){
+        read_texts();
+        printf("> ");
         char txt[TEXT_MAX_LEN];
-        scanf("%s", txt);
-        if(txt[0]=='#' && handle_connected_cmd((txt+1), key) != 0)
+        fgets(txt, TEXT_MAX_LEN, stdin);
+        if(txt[0] == 10)
+            continue;
+        for(int i = 0; i<strlen(txt); i++)
+            txt[i] = txt[i] == 10 ? ' ':txt[i];
+        if(txt[0]=='#' && handle_connected_cmd((txt+1), key) != 0){
+            print_help(0);
             return;
-        txtmsg_t buffer, got;
+        }
+        txtmsg_t buffer;
         buffer.mtype = 1;
         strcpy(buffer.text, txt);
         assert(msgsnd(key, &buffer, TXTMSG_T_LEN, QMOD) != -1);
-        if(msgrcv(cl_que, &buffer, TXTMSG_T_LEN, MSG_TYPE_URGENT, QMOD ) != -1)
-            puts(buffer.text);
     }
 }
 
 int handle_connected_cmd(char *cmd, int key){
+    for(char *p = cmd; *p; p++)
+        if(!isalpha(*p))
+            *p = '\0';
+    
     if(strcmp(cmd, "exit") == 0){
         exit(EXIT_SUCCESS);
     } else if(strcmp(cmd, "disconnect") == 0){
