@@ -268,8 +268,8 @@ char random_alpha(){
     if(r < n_numb)
         return (char)(r);
     if(r < n_numb + n_upper)
-        return (char)('A' + r);
-    return (char)('a' + r);
+        return (char)('A' + r - n_numb);
+    return (char)('a' + r - n_numb - n_upper);
 }
 
 void get_clq_name(char *to, char *nick){
