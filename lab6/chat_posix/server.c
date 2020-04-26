@@ -26,7 +26,7 @@ client clients[CLIENTS_MAX];
 int main(){
     init();
     while(1){
-        msq_buffer_t buffer;
+        msg_buffer_t buffer;
         assert(mq_receive(queue_id, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
         handle_msg(&buffer.msg);
     }

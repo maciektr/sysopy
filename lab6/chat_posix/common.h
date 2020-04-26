@@ -34,7 +34,7 @@ typedef struct {
 typedef union {
     char buffer[MSG_MAX_SIZE];
     message_t msg;
-} msq_buffer_t;
+} msg_buffer_t;
 #define msg_t message_t
 
 #endif //_COMMON_H
