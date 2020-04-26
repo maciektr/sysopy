@@ -16,7 +16,7 @@ void atexit_handle();
 void stop_sig();
 void init();
 
-void handle_msg(msq_buffer_t *buffer);
+void handle_msg(msg_t *msg);
 
 
 mqd_t queue_id = -1;
@@ -28,14 +28,14 @@ int main(){
     while(1){
         msq_buffer_t buffer;
         assert(mq_receive(queue_id, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
-        handle_msg(&buffer);
+        handle_msg(&buffer.msg);
     }
 }
 
-void handle_msg(msq_buffer_t *buffer){
-    switch(buffer->msg.order){
+void handle_msg(msg_t *msg){
+    switch(msg->order){
         case INIT:
-            // register_client(buffer->integer_msg, buffer->clients[0].nick);
+            register_client(msg->integer_msg, msg->clients[0].nick);
             break;
         case LIST:
             // send_list(buffer->sender_id);
