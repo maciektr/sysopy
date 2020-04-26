@@ -28,7 +28,7 @@ void print_help(int mode);
 void clear_stdin();
 char random_alpha();
 void get_clq_name(char *to, char *nick);
-
+void remove_enter(char *txt);
 
 int main(){
     srand(time(NULL));
@@ -37,12 +37,12 @@ int main(){
     clear_stdin();
     while(1){
         // check_queue();
-        // printf("# ");
-        // char cmd[CMD_LEN];
-        // fgets(cmd, CMD_LEN, stdin);
-        // if(cmd[0] == 10)
-        //     continue;
-        // remove_enter(cmd);
+        printf("# ");
+        char cmd[CMD_LEN];
+        fgets(cmd, CMD_LEN, stdin);
+        if(cmd[0] == 10)
+            continue;
+        remove_enter(cmd);
         // handle_cmd(cmd);
     }
 }
@@ -64,6 +64,11 @@ void print_help(int mode){
 }
 
 // Helper functions
+
+void remove_enter(char *txt){
+    for(int i = 0; i<strlen(txt); i++)
+        txt[i] = txt[i] == 10 ? ' ':txt[i];
+}
 
 void clear_stdin(){
     int c;
