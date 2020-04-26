@@ -187,4 +187,10 @@ void close_queue() {
     if (queue_id == -1)
         return;
     assert(msgctl(queue_id, IPC_RMID, NULL) != -1);
+
+    for(int i = 0; i<active_clients; i++){
+        msg_t buffer;
+        set_msg(&buffer, 0, STOP, 0);
+        assert(msgsnd(clients[i].key, &buffer, MSG_T_LEN, QMOD) != -1);
+    }
 }
