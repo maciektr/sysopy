@@ -22,9 +22,18 @@ void stop_sig();
 void get_id();
 void init();
 
+// Program functions
 void print_help(int mode);
-void handle_cmd(char *cmd);
 void check_queue();
+
+// Command handlers
+void handle_cmd(char *cmd);
+void list_clients();
+
+// List helper functions
+void list_pretty_print(client clients[CLIENTS_MAX], int n);
+void item_pretty_print(int id, char *nick);
+int int_len(int n);
 
 // Helper functions
 void clear_stdin();
@@ -101,6 +110,65 @@ void handle_cmd(char *cmd){
         print_help(0);
         return;
     }
+}
+
+void list_clients(){
+    msg_buffer_t buffer;
+    set_msg(&buffer.msg, my_id, LIST, 0);
+ 
+    assert(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+    assert(mq_receive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
+
+    list_pretty_print(buffer.msg.clients, buffer.msg.integer_msg);
+}
+
+// List helper functions
+
+void list_pretty_print(client clients[CLIENTS_MAX], int n){
+    item_pretty_print(0,NULL);
+    for(int i = 0; i < n; i++)
+        item_pretty_print(clients[i].id, clients[i].nick);
+    item_pretty_print(-1,NULL);
+};  
+
+void item_pretty_print(int id, char *nick){
+    int id_mlen = int_len(CLIENTS_MAX);
+    if(id_mlen < 3)
+        id_mlen = 3;
+    int len = NICK_LEN + id_mlen +7;
+
+    if(nick == NULL && id == 0){
+        item_pretty_print(-1, NULL);
+        char *txt = "| Free clients list:";
+        printf("%s", txt);
+        for(int i = 0 ; i<len - strlen(txt)-1; i++) printf(" ");
+        printf("|\n|");
+        for(int i = 0; i<len -2; i++) printf("-");
+        printf("|\n| id:");
+        for(int i = 0; i<id_mlen - 3; i++) printf(" ");
+        printf(" | nick:");
+        for(int i = 0; i<NICK_LEN - 5; i++) printf(" ");
+        printf(" |\n");
+    } else if(nick == NULL && id == -1){
+        printf("|");
+        for(int i = 0; i<len -2; i++) printf("-");
+        printf("|\n");
+    } else {
+        printf("| %d",id);
+        for(int i = 0; i < id_mlen - int_len(id); i++) printf(" ");
+        printf(" | %s", nick);
+        for(int i = 0; i < NICK_LEN - strlen(nick); i++) printf(" ");
+        printf(" |\n");
+    }
+}
+
+int int_len(int n){
+    int res = 0; 
+    while(n){
+        n/=10;
+        res++;
+    }
+    return res;
 }
 
 // Helper functions
