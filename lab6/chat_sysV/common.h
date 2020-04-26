@@ -35,7 +35,6 @@ typedef enum {__, STOP, DISCONNECT, LIST, CONNECT, INIT, NONE} order_t;
 typedef struct {
     long mtype;
     int sender_id;
-    // order_t order
     long integer_msg;
     client clients[MSG_T_CLIENTS_MAX];
 } message_t;
