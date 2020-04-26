@@ -12,8 +12,9 @@
 #include "common.h"
 #define CMD_LEN 100
 
-int cl_que = -1;
-int srv_que = -1;
+char clq_name[CLQ_NAME_LEN];
+mqd_t cl_que = -1;
+mqd_t srv_que = -1;
 int my_id = -1;
 
 void atexit_handle();
@@ -93,7 +94,6 @@ void init(){
         scanf("%s", nick);
     }
 
-    char clq_name[CLQ_NAME_LEN];
     get_clq_name(clq_name, nick);
     cl_que = get_queue(clq_name, O_RDONLY);
     assert(cl_que != -1);
@@ -129,7 +129,7 @@ void atexit_handle() {
     if (cl_que != -1){
         //TODO: Check if unlink possible?
         assert(mq_close(cl_que) == 0);
-        assert(mq_unlink(cl_que) == 0);
+        assert(mq_unlink(clq_name) == 0);
     }
 }
 
