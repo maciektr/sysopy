@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <time.h>
 
 #include <mqueue.h>
@@ -68,7 +69,7 @@ void check_queue(){
         switch (buffer.msg.order)
         {
         case CONNECT:
-            printf("Another client (nick: %s, id: %d) is connecting to you.\n", buffer.clients[0].nick, buffer.clients[0].id);
+            printf("Another client (nick: %s, id: %d) is connecting to you.\n", buffer.msg.clients[0].nick, buffer.msg.clients[0].id);
             break;
         case STOP:
             puts("# Server is shutting down.");
@@ -101,7 +102,7 @@ void handle_cmd(char *cmd){
     cut_word(cmd);
     
     if (strcmp(cmd, "list") == 0){
-        // list_clients();                
+        list_clients();                
     }else if(strcmp(cmd, "connect") == 0){
         // handle_connect(-1);
     }else if(strcmp(cmd, "exit") == 0){
