@@ -23,6 +23,7 @@ typedef struct {
     char nick[NICK_LEN];
 } client;
 
+struct timespec nowait;
 
 typedef enum {__, STOP, DISCONNECT, LIST, CONNECT, INIT, NONE} order_t;
 #define MSG_T_CLIENTS_MAX (((MSG_MAX_SIZE - sizeof(int) -CLQ_NAME_LEN - sizeof(order_t) - sizeof(long))/sizeof(client))-4)

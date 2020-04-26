@@ -70,8 +70,7 @@ int main(){
 
 void check_queue(){
     msg_buffer_t buffer;
-    // TODO: IPC_NOWAIT?
-    if(mq_receive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL) != -1){
+    if(mq_timedreceive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL, &nowait) != -1){
         switch (buffer.msg.order)
         {
         case CONNECT:
@@ -186,7 +185,7 @@ int handle_connected_cmd(char *cmd, int key){
 
 void read_texts(){
     char buffer[MSG_MAX_SIZE];
-    while(mq_receive(cl_que, buffer, MSG_MAX_SIZE, NULL) != -1)
+    while(mq_timedreceive(cl_que, buffer, MSG_MAX_SIZE, NULL, &nowait) != -1)
         puts(buffer);
 }
 
