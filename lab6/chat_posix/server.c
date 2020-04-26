@@ -75,6 +75,7 @@ int register_client(char *name, char *nick){
     msg_buffer_t buffer;
     set_msg(&buffer.msg, 0, INIT, clients[active_clients].id);
     assert(mq_send(clients[active_clients].key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+    active_clients++;
     return 0;
 }
 
