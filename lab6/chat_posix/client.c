@@ -142,7 +142,7 @@ void handle_connect(int friend_id){
         puts("Connection failed. Please try again.");
         return;
     }
-    int key = get_queue(buffer.msg.clients[0].que_name, O_RDONLY);
+    int key = get_queue(buffer.msg.clients[0].que_name, O_WRONLY);
     connected_mode(key);
 }
 

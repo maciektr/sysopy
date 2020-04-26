@@ -30,9 +30,9 @@ client clients[CLIENTS_MAX];
 int main(){
     init();
     while(1){
-        msg_buffer_t buffer;
-        assert(mq_receive(queue_id, (char *)&buffer.msg, MSG_MAX_SIZE, NULL) != -1);
-        handle_msg(&buffer.msg);
+        msg_t msg;
+        assert(mq_receive(queue_id, (char *)&msg, MSG_MAX_SIZE, NULL) != -1);
+        handle_msg(&msg);
     }
 }
 
@@ -159,8 +159,10 @@ void remove_client(int id){
         return;
     for(int i = 0; i<active_clients; i++)
         if(clients[i].id == id){
+            assert(mq_close(clients[i].key) == 0);
             active_clients--;
             clients[i] = clients[active_clients];
+            return;
         }
 }
 
