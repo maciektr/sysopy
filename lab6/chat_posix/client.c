@@ -102,20 +102,20 @@ void init(){
 }
 
 void get_id(char *nick){
-    // msg_t buffer;
-    // set_msg(&buffer, 0, INIT, cl_que);
+    msg_buffer_t buffer;
+    set_msg(&buffer.msg, 0, INIT, cl_que);
 
-    // client cl;
-    // assert(strlen(nick) < NICK_LEN);
-    // strcpy(cl.nick, nick);
-    // cl.key = cl_que;
-    // cl.id = -1;
-    // buffer.clients[0] = cl;
+    client cl;
+    assert(strlen(nick) < NICK_LEN);
+    strcpy(cl.nick, nick);
+    cl.key = cl_que;
+    cl.id = -1;
+    buffer.msg.clients[0] = cl;
     
-    // assert(msgsnd(srv_que, &buffer, MSG_T_LEN, QMOD) != -1);
-    // assert(msgrcv(cl_que, &buffer, MSG_T_LEN, MSG_TYPE_URGENT, QMOD) != -1);
-    // my_id = buffer.integer_msg;
-    // assert(my_id != -1);
+    assert(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+    assert(mq_receive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
+    my_id = buffer.msg.integer_msg;
+    assert(my_id != -1);
 }
 
 void atexit_handle() {
