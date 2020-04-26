@@ -160,7 +160,7 @@ void init(){
     atexit(atexit_handle);
     signal(SIGINT, stop_sig);
 
-    queue_id = get_queue(SERVER_QUE_NAME, O_WRONLY);
+    queue_id = get_queue(SERVER_QUE_NAME, O_RDONLY);
     assert(queue_id != -1);  
     puts("# Server started!");
 }
