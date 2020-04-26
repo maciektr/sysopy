@@ -71,11 +71,10 @@ void handle_msg(msg_t *buffer){
 }
 
 int handle_connect(int first_id, int second_id){
+    printf("# Connect request from %d to %d\n", first_id, second_id);
     int first_key = -1, second_key = -1;
     int st_i = -1, nd_i = -1;
     for(int i = 0; i < active_clients; i++){
-        // if((clients[i].id == first_id || clients[i].id == second_id) && clients[i].status != FREE)
-            // return -1;
         if(clients[i].id == first_id){
             first_key = clients[i].key;
             st_i = i;
@@ -99,9 +98,15 @@ int handle_connect(int first_id, int second_id){
 }
 
 int register_client(int key, char *nick){
-    if(active_clients >= CLIENTS_MAX)
+    if(active_clients >= CLIENTS_MAX){
+        printf("# Register client request failed with too many clients.\n");
+        msg_t buffer;
+        set_msg(&buffer, 0, INIT, -1);
+        assert(msgsnd(key, &buffer, MSG_T_LEN, QMOD | IPC_NOWAIT) != -1);
         return -1;
+    }
     clients[active_clients].id = active_clients+1;
+    printf("# Registering client (nick: %s, id: %d)\n", nick, clients[active_clients].id);
     clients[active_clients].key = key;
     clients[active_clients].status = FREE;
     strcpy(clients[active_clients].nick, nick);
@@ -115,6 +120,7 @@ int register_client(int key, char *nick){
 }
 
 int set_free(int id){
+    printf("# Client %d is now free for connections.\n", id);
     for(int i = 0; i < active_clients; i++){
         if(clients[i].id == id){
             clients[i].status = FREE;
@@ -125,6 +131,7 @@ int set_free(int id){
 }
 
 void remove_client(int id){
+    printf("# Client %d is removed from the server\n", id);
     if(active_clients <= 0)
         return;
     for(int i = 0; i<active_clients; i++)
@@ -135,6 +142,7 @@ void remove_client(int id){
 }
 
 void send_list(int id){
+    printf("# Sending clients list to client %d.\n", id);
     msg_t buffer;
 
     int ac_i = 0;
@@ -157,6 +165,7 @@ void init(){
 
     queue_id = get_queue(get_homedir(), PROJECT_ID);
     assert(queue_id != -1);
+    puts("# Server started!");
 }
 
 void stop_sig() {
@@ -164,6 +173,7 @@ void stop_sig() {
 }
 
 void close_queue() {
+    puts("# Closing server queue.");
     if (queue_id == -1)
         return;
     assert(msgctl(queue_id, IPC_RMID, NULL) != -1);
