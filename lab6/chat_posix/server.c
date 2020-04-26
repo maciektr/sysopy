@@ -19,6 +19,7 @@ void init();
 void handle_msg(msg_t *msg);
 int register_client(mqd_t key, char *nick);
 void send_list(int id);
+int handle_connect(int first_id, int second_id);
 int set_free(int id);
 void remove_client(int id);
 
@@ -44,7 +45,7 @@ void handle_msg(msg_t *msg){
             send_list(msg->sender_id);
             break;
         case CONNECT:
-            // assert(handle_connect(buffer->sender_id, buffer->integer_msg) >= 0);
+            assert(handle_connect(msg->sender_id, msg->integer_msg) >= 0);
             break;
         case DISCONNECT:
             set_free(msg->sender_id);
@@ -94,6 +95,43 @@ void send_list(int id){
     set_msg(&buffer.msg, 0, LIST, ac_i);
     assert(key != -1);
     assert(mq_send(key, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+}
+
+int handle_connect(int first_id, int second_id){
+    printf("# Connect request from %d to %d\n", first_id, second_id);
+    int first_key = -1, second_key = -1;
+    int st_i = -1, nd_i = -1;
+    char *first_nick = NULL;
+    for(int i = 0; i < active_clients; i++){
+        if(clients[i].id == first_id){
+            first_key = clients[i].key;
+            st_i = i;
+            first_nick = clients[i].nick;
+        }
+        if(clients[i].id == second_id){
+            second_key = clients[i].key;
+            nd_i = i;
+        }
+    }
+
+    if(first_key < 0)
+        return -1;
+
+    msg_buffer_t buffer;
+    set_msg(&buffer.msg, second_id, CONNECT, second_key < 0 ? -1:second_key);
+    if(mq_send(first_key, buffer.buffer, MSG_MAX_SIZE, 0) < 0)
+        return -1;
+    
+    set_msg(&buffer.msg, first_id, CONNECT, first_key);
+    client cl;
+    cl.id = first_id;
+    strcpy(cl.nick, first_nick);
+    buffer.msg.clients[0]=cl;
+    if(mq_send(second_key, buffer.buffer, MSG_MAX_SIZE, 0) < 0)
+        return -1;
+
+    clients[st_i].status = BUSY;
+    return 0;    
 }
 
 int set_free(int id){
