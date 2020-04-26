@@ -31,7 +31,7 @@ int main(){
     init();
     while(1){
         msg_buffer_t buffer;
-        assert(mq_receive(queue_id, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
+        assert(mq_receive(queue_id, (char *)&buffer.msg, MSG_MAX_SIZE, NULL) != -1);
         handle_msg(&buffer.msg);
     }
 }

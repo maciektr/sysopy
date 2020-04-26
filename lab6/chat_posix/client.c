@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
 #include <time.h>
 
 #include <mqueue.h>
@@ -318,7 +319,7 @@ void get_id(char *nick){
     strcpy(cl.que_name, clq_name);
     buffer.msg.clients[0] = cl;
     
-    assert(mq_send(srv_que, buffer.buffer, MSG_MAX_SIZE, 0) == 0);
+    assert(mq_send(srv_que, (const char *)&buffer.msg, MSG_MAX_SIZE, 0) == 0);
     assert(mq_receive(cl_que, buffer.buffer, MSG_MAX_SIZE, NULL) != -1);
     my_id = buffer.msg.integer_msg;
     assert(my_id != -1);
