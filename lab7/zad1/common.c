@@ -24,5 +24,11 @@ int get_shm(){
     if(shm != -1)
         return shm;
 
-    return shmget(key, SHM_SIZE,IPC_CREAT);
+    return shmget(key, SHM_SIZE, IPC_CREAT | QMOD);
+}
+
+int get_lock(){
+    key_t key = ftok(get_homedir(), LOCK);
+    assert(key != -1);
+    return semget(key, 1, IPC_CREAT | QMOD);
 }
