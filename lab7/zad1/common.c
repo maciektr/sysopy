@@ -20,11 +20,17 @@ char *get_homedir(){
 int get_shm(){
     key_t key = ftok(get_homedir(), PROJECT_ID);
     assert(key != -1);
-    int shm = shmget(key, 0, 0);
+    int shm = shmget(key, 0, QMOD);
     if(shm != -1)
         return shm;
-
-    return shmget(key, SHM_SIZE, IPC_CREAT | QMOD);
+    // Memory is not yet created. 
+    shm = shmget(key, SHM_SIZE, IPC_CREAT | IPC_EXCL | QMOD);
+    shm_t *shmaddr = (shm_t *)shmat(shm, NULL, 0);
+    shmaddr->insert_index = 0;
+    shmaddr->pack_index = 0;
+    shmaddr->remove_index = 0;
+    assert(shmdt(shmaddr) == 0);
+    return shm;
 }
 
 int get_lock(){
