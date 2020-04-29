@@ -18,6 +18,8 @@
 char *get_timestamp();
 char *get_homedir();
 int get_lock();
+void set_sembuff(sembuf_t *buffer, int num, int op, int flag);
+void sem_qop(int lock_id, int op);
 
 typedef struct{
     int orders[ORDERS_N];
@@ -25,5 +27,7 @@ typedef struct{
     int pack_index;
     int remove_index;
 } shm_t;
+
+typedef struct sembuf sembuf_t;
 
 #endif //_COMMON_H

@@ -38,3 +38,15 @@ int get_lock(){
     assert(key != -1);
     return semget(key, 1, IPC_CREAT | QMOD);
 }
+
+void set_sembuff(sembuf_t *buffer, int num, int op, int flag){
+    buffer->sem_num = num;
+    buffer->sem_op = op;
+    buffer->sem_flg = flag;
+}
+
+void sem_qop(int lock_id, int op){
+    sembuf_t buffer;
+    set_sembuff(&buffer,0,op,0);
+    semop(lock_id, &buffer, 1);
+}
