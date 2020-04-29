@@ -14,7 +14,7 @@ OUT3 = sender.out
 SHOP = shop.c
 SHOP_OUT = shop.out
 
-# COMMON_FILE = common.c
+COMMON_FILE = common.c
 
 main: clean
 	$(CC) -D_NDEBUG $(CODE1) $(COMMON_FILE) -o $(OUT1)
