@@ -29,13 +29,11 @@ void sig_exit();
 int main(){
     init();
     while(1){
-        assert(sem_wait(acc_sem) != -1);
         assert(sem_wait(send_sem) != -1);
 
         int r = shm_rm(shmaddr);
         printf("(%d %s) Wysłałem zamówienie o wielkości: %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d.\n", (int)getpid(), get_timestamp(), r, n_to_pack(), n_to_send());
 
-        assert(sem_post(acc_sem) != -1);
         assert(sem_post(ins_sem) != -1);
     }
 }
@@ -57,7 +55,6 @@ void init(){
     shmaddr = get_shm();
     assert(shmaddr != NULL);
 
-    acc_sem = get_lock(ACC_SEM, 1);
     ins_sem = get_lock(INS_SEM, ORDERS_N);
     send_sem = get_lock(SEND_SEM, 0);
 }
@@ -65,9 +62,6 @@ void init(){
 void atexit_handler(){
     munmap(shmaddr, SHM_SIZE);
     shm_unlink(SHM_NAME);
-
-    sem_close(acc_sem);
-    sem_unlink(ACC_SEM);
 
     sem_close(ins_sem);
     sem_unlink(INS_SEM);

@@ -18,7 +18,6 @@
 #define QMOD (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
 #define SHM_NAME "/shop_shm_"
-#define ACC_SEM "/shop_sem_acc_"
 #define INS_SEM "/shop_sem_ins"
 #define PACK_SEM "/shop_sem_pack"
 #define SEND_SEM "/shop_sem_send"
