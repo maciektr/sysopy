@@ -40,6 +40,7 @@ int shm_safe_pack(shm_t *shm){
     if(n_to_pack(shm) > 0){
         shm->orders[shm->pack_index % ORDERS_N] *= 2;
         shm->pack_index++;
+        shm->pack_index %= ORDERS_N;
         return 0;
     }
     return -1;

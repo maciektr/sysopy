@@ -41,6 +41,7 @@ int shm_safe_ins(shm_t *shm, int val){
     if(n_to_pack(shm) + n_to_send(shm) < ORDERS_N){
         shm->orders[shm->insert_index % ORDERS_N] = val;
         shm->insert_index++;
+        shm->insert_index %= ORDERS_N;
         return 0;
     }
     return -1;
