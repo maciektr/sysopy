@@ -17,7 +17,7 @@ int shm_id = -1;
 int lock_id = -1;
 shm_t *shmaddr = NULL;
 
-int shm_safe_pack(shm_t *shm);
+int shm_pack(shm_t *shm);
 
 void init();
 void atexit_handler();
@@ -26,24 +26,20 @@ void sig_exit();
 int main(){
     init();
     while(1){
-        sem_qop(lock_id, -1);
+        sem_2qop(lock_id, ACC_SEM, -1, PACK_SEM, -1);
 
-        int r = shm_safe_pack(shmaddr);
-        if(r >= 0)
-            printf("(%d %s) Przygotowałem zamówienie o wielkości: %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d.\n", (int)getpid(), get_timestamp(), r, n_to_pack(shmaddr), n_to_send(shmaddr));
+        int r = shm_pack(shmaddr);
+        printf("(%d %s) Przygotowałem zamówienie o wielkości: %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d.\n", (int)getpid(), get_timestamp(), r, n_to_pack(shmaddr), n_to_send(shmaddr));
 
-        sem_qop(lock_id, 1);
+        sem_2qop(lock_id, ACC_SEM, 1, SEND_SEM, 1);
     }
 }
 
-int shm_safe_pack(shm_t *shm){
-    int res = -1;
-    if(n_to_pack(shm) > 0){
-        shm->orders[shm->pack_index % ORDERS_N] *= 2;
-        res = shm->orders[shm->pack_index % ORDERS_N];
-        shm->pack_index++;
-        shm->pack_index %= ORDERS_N;
-    }
+int shm_pack(shm_t *shm){
+    shm->orders[shm->pack_index % ORDERS_N] *= 2;
+    int res = shm->orders[shm->pack_index % ORDERS_N];
+    shm->pack_index++;
+    shm->pack_index %= ORDERS_N;
     return res;
 }
 

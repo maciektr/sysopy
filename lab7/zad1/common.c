@@ -7,7 +7,11 @@ char *get_timestamp(){
     struct tm * timeinfo;
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    return asctime(timeinfo);
+    char *res = asctime(timeinfo);
+    for(char *p=res; *p; p++)
+        if(*p == '\n')
+            *p='\0';
+    return res;
 }
 
 char *get_homedir(){
@@ -41,9 +45,10 @@ int get_lock(){
     key_t key = ftok(get_homedir(), LOCK);
     assert(key != -1);
     
-    int sem = semget(key, 1, IPC_CREAT | IPC_EXCL | QMOD);
+    int sem = semget(key, SEM_COUNT, IPC_CREAT | IPC_EXCL | QMOD);
     if(sem != -1){
         sem_2qop(sem, ACC_SEM, 1, INS_SEM, ORDERS_N);
+        sem_2qop(sem, SEND_SEM, 0, PACK_SEM, 0);
         return sem; 
     }
     
@@ -62,11 +67,19 @@ void sem_2qop(int lock_id, int s1_id, int op1, int s2_id, int op2){
     sembuf_t buffer[2];
     set_sembuff(&buffer[0], s1_id, op1, 0);
     set_sembuff(&buffer[1], s2_id, op2, 0);
-    semop(lock_id, &buffer, 2);
+    semop(lock_id, buffer, 2);
 }
 
 void sem_qop(int lock_id, int sem_id, int op){
     sembuf_t buffer;
     set_sembuff(&buffer,sem_id,op,0);
     semop(lock_id, &buffer, 1);
+}
+
+int n_to_pack(){
+    return semctl(get_lock(), PACK_SEM, GETVAL, NULL);
+}
+
+int n_to_send(){
+    return semctl(get_lock(), SEND_SEM, GETVAL, NULL);
 }

@@ -41,7 +41,7 @@ int get_lock();
 void set_sembuff(sembuf_t *buffer, int num, int op, int flag);
 void sem_2qop(int lock_id, int s1_id, int op1, int s2_id, int op2);
 void sem_qop(int lock_id, int sem_id, int op);
-int n_to_pack(shm_t *shm);
-int n_to_send(shm_t *shm);
+int n_to_pack();
+int n_to_send();
 
 #endif //_COMMON_H
