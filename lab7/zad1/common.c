@@ -1,7 +1,5 @@
 #include "common.h"
 
-#include<stdio.h>
-
 char *get_timestamp(){
     time_t rawtime;
     struct tm * timeinfo;
