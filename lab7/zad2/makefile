@@ -14,19 +14,19 @@ OUT3 = sender.out
 COMMON_FILE = common.c
 
 main: clean
-	$(CC) -D_NDEBUG $(CODE1) $(COMMON_FILE) -o $(OUT1) -lrt
-	$(CC) -D_NDEBUG $(CODE2) $(COMMON_FILE) -o $(OUT2) -lrt
-	$(CC) -D_NDEBUG $(CODE3) $(COMMON_FILE) -o $(OUT3) -lrt
+	$(CC) -D_NDEBUG $(CODE1) $(COMMON_FILE) -o $(OUT1) -lrt -lpthread
+	$(CC) -D_NDEBUG $(CODE2) $(COMMON_FILE) -o $(OUT2) -lrt -lpthread
+	$(CC) -D_NDEBUG $(CODE3) $(COMMON_FILE) -o $(OUT3) -lrt -lpthread
 
 debug:
-	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE1) $(COMMON_FILE) -o $(OUT1) -lrt
-	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE2) $(COMMON_FILE) -o $(OUT2) -lrt
-	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE3) $(COMMON_FILE) -o $(OUT3) -lrt
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE1) $(COMMON_FILE) -o $(OUT1) -lrt -lpthread
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE2) $(COMMON_FILE) -o $(OUT2) -lrt -lpthread
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE3) $(COMMON_FILE) -o $(OUT3) -lrt -lpthread
 
 debug_fast:
-	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE1) $(COMMON_FILE) -o $(OUT1) -lrt
-	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE2) $(COMMON_FILE) -o $(OUT2) -lrt
-	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE3) $(COMMON_FILE) -o $(OUT3) -lrt
+	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE1) $(COMMON_FILE) -o $(OUT1) -lrt -lpthread
+	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE2) $(COMMON_FILE) -o $(OUT2) -lrt -lpthread
+	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE3) $(COMMON_FILE) -o $(OUT3) -lrt -lpthread
 
 clean:
 	rm -f $(OUT1) $(OUT2) $(OUT3) *.o *.out
