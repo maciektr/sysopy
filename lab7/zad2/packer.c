@@ -17,9 +17,10 @@
 
 shm_t *shmaddr = NULL;
 sem_t *acc_sem = NULL;
-sem_t *ins_sem = NULL;
 sem_t *pack_sem = NULL;
 sem_t *send_sem = NULL;
+
+int shm_pack(shm_t *shm);
 
 void init();
 void atexit_handler();
@@ -28,8 +29,23 @@ void sig_exit();
 int main(){
     init();
     while(1){
+        assert(sem_wait(acc_sem) != -1);
+        assert(sem_wait(pack_sem) != -1);
 
+        int r = shm_pack(shmaddr);
+        printf("(%d %s) Przygotowałem zamówienie o wielkości: %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d.\n", (int)getpid(), get_timestamp(), r, n_to_pack(), n_to_send());
+
+        assert(sem_post(acc_sem) != -1);
+        assert(sem_post(send_sem) != -1);
     }
+}
+
+int shm_pack(shm_t *shm){
+    shm->orders[shm->pack_index % ORDERS_N] *= 2;
+    int res = shm->orders[shm->pack_index % ORDERS_N];
+    shm->pack_index++;
+    shm->pack_index %= ORDERS_N;
+    return res;
 }
 
 void init(){
@@ -42,7 +58,6 @@ void init(){
     assert(shmaddr != NULL);
 
     acc_sem = get_lock(ACC_SEM, 1);
-    ins_sem = get_lock(INS_SEM, ORDERS_N);
     pack_sem = get_lock(PACK_SEM, 0);
     send_sem = get_lock(SEND_SEM, 0);
 }
@@ -52,9 +67,13 @@ void atexit_handler(){
     shm_unlink(SHM_NAME);
 
     sem_close(acc_sem);
-    sem_close(ins_sem);
+    sem_unlink(ACC_SEM);
+
     sem_close(pack_sem);
+    sem_unlink(PACK_SEM);
+
     sem_close(send_sem);
+    sem_unlink(SEND_SEM);
 }
 
 void sig_exit(){
