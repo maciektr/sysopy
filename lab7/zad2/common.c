@@ -13,15 +13,22 @@ char *get_timestamp(){
 }
 
 shm_t *get_shm(){
-    int shm = shm_open(SHM_NAME, O_CREAT | O_EXCL, QMOD);
+    int first = 0;
+    int shm = shm_open(SHM_NAME, O_CREAT | O_EXCL | O_RDWR, QMOD);
     if(shm != -1){  
         assert(ftruncate(shm, SHM_SIZE) != -1);
+        first = 1;
     }else{
-        shm = shm_open(SHM_NAME, 0, QMOD);
+        shm = shm_open(SHM_NAME, O_RDWR, QMOD);
         assert(shm != -1);
     }
-    shm_t *shmaddr = (shm_t *)mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, 0, shm, 0);
+    shm_t *shmaddr = (shm_t *)mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm, 0);
     assert(shmaddr != NULL);
+    if(first){
+        shmaddr->insert_index = 0;
+        shmaddr->pack_index = 0;
+        shmaddr->remove_index = 0;
+    }
     return shmaddr;
 }
 
