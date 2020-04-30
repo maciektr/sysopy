@@ -43,7 +43,7 @@ int get_lock(){
     
     int sem = semget(key, 1, IPC_CREAT | IPC_EXCL | QMOD);
     if(sem != -1){
-        sem_qop(sem, 1);
+        sem_2qop(sem, ACC_SEM, 1, INS_SEM, ORDERS_N);
         return sem; 
     }
     
@@ -58,22 +58,15 @@ void set_sembuff(sembuf_t *buffer, int num, int op, int flag){
     buffer->sem_flg = flag;
 }
 
-void sem_qop(int lock_id, int op){
+void sem_2qop(int lock_id, int s1_id, int op1, int s2_id, int op2){
+    sembuf_t buffer[2];
+    set_sembuff(&buffer[0], s1_id, op1, 0);
+    set_sembuff(&buffer[1], s2_id, op2, 0);
+    semop(lock_id, &buffer, 2);
+}
+
+void sem_qop(int lock_id, int sem_id, int op){
     sembuf_t buffer;
-    set_sembuff(&buffer,0,op,0);
+    set_sembuff(&buffer,sem_id,op,0);
     semop(lock_id, &buffer, 1);
-}
-
-int n_to_pack(shm_t *shm){
-    if(shm->insert_index >= shm->pack_index)
-        return shm->insert_index - shm->pack_index;
-
-    return shm->insert_index + (ORDERS_N - shm->pack_index);
-}
-
-int n_to_send(shm_t *shm){
-    if(shm->pack_index >= shm->remove_index)
-        return shm->pack_index - shm->remove_index;
-
-    return shm->pack_index + (ORDERS_N - shm->remove_index);
 }
