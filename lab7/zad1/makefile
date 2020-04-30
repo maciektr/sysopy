@@ -11,17 +11,12 @@ OUT2 = packer.out
 CODE3 = sender.c
 OUT3 = sender.out
 
-SHOP = shop.c
-SHOP_OUT = shop.out
-
 COMMON_FILE = common.c
 
 main: clean
 	$(CC) -D_NDEBUG $(CODE1) $(COMMON_FILE) -o $(OUT1)
 	$(CC) -D_NDEBUG $(CODE2) $(COMMON_FILE) -o $(OUT2)
 	$(CC) -D_NDEBUG $(CODE3) $(COMMON_FILE) -o $(OUT3)
-
-	$(CC) -D_NDEBUG $(SHOP) $(COMMON_FILE) -o $(SHOP_OUT)
 
 debug:
 	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE1) $(COMMON_FILE) -o $(OUT1)
