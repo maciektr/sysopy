@@ -63,3 +63,17 @@ void sem_qop(int lock_id, int op){
     set_sembuff(&buffer,0,op,0);
     semop(lock_id, &buffer, 1);
 }
+
+int n_to_pack(shm_t *shm){
+    if(shm->insert_index >= shm->pack_index)
+        return shm->insert_index - shm->pack_index;
+
+    return shm->insert_index + (ORDERS_N - shm->pack_index);
+}
+
+int n_to_send(shm_t *shm){
+    if(shm->pack_index >= shm->remove_index)
+        return shm->pack_index - shm->remove_index;
+
+    return shm->pack_index + (ORDERS_N - shm->remove_index);
+}
