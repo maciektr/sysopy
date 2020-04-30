@@ -15,12 +15,12 @@ char *get_timestamp(){
 shm_t *get_shm(){
     int shm = shm_open(SHM_NAME, O_CREAT | O_EXCL, QMOD);
     if(shm != -1){  
-        assert(ftruncate(shm, SHM_SIZE) == 0);
+        assert(ftruncate(shm, SHM_SIZE) != -1);
     }else{
         shm = shm_open(SHM_NAME, 0, QMOD);
         assert(shm != -1);
     }
-    shm_t *shmaddr = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, 0, shm, 0);
+    shm_t *shmaddr = (shm_t *)mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, 0, shm, 0);
     assert(shmaddr != NULL);
     return shmaddr;
 }
