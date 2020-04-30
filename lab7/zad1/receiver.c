@@ -17,6 +17,8 @@ int shm_id = -1;
 int lock_id = -1;
 shm_t *shmaddr = NULL;
 
+int shm_safe_ins(shm_t *shm, int val);
+
 void init();
 void atexit_handler();
 void sig_exit();
@@ -27,11 +29,21 @@ int main(){
         int val = rand() % 1000;
         sem_qop(lock_id, -1);
 
-        shmaddr->orders[shmaddr->insert_index++] = val;
-        printf("(%d %s) Dodałem liczbę: %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d.", (int)getpid(), get_timestamp(), val, n_to_pack(shmaddr), n_to_send(shmaddr));
+        int r = shm_safe_ins(shmaddr, val);
+        if(r == 0)
+            printf("(%d %s) Dodałem liczbę: %d. Liczba zamównień do przygotowania: %d. Liczba zamównień do wysłania: %d.\n", (int)getpid(), get_timestamp(), val, n_to_pack(shmaddr), n_to_send(shmaddr));
 
         sem_qop(lock_id, 1);
     }
+}
+
+int shm_safe_ins(shm_t *shm, int val){
+    if(n_to_pack(shm) + n_to_send(shm) < ORDERS_N){
+        shm->orders[shm->insert_index % ORDERS_N] = val;
+        shm->insert_index++;
+        return 0;
+    }
+    return -1;
 }
 
 
