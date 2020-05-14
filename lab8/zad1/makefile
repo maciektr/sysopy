@@ -8,13 +8,13 @@ OUT = main.out
 COMMON_FILE = common.c
 
 main: clean
-	$(CC) -D_NDEBUG $(CODE) -o $(OUT)
+	$(CC) -D_NDEBUG $(CODE) -o $(OUT) -lpthread
 
 debug:
-	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE) -o $(OUT)
+	$(CC) -fsanitize=address -Wall -Wextra -Wshadow -pedantic $(CODE) -o $(OUT) -lpthread
 
 debug_fast:
-	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE) -o $(OUT)
+	$(CC) -Wall -Wextra -Wshadow -pedantic $(CODE) -o $(OUT) -lpthread
 
 clean:
 	rm -f $(OUT) *.o *.out
