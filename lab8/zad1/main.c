@@ -33,7 +33,8 @@ int **image;
 int *hist;
 
 typedef struct{
-
+    int th_i;
+    int th_n;
 } args_t;
 
 int main(int argc, char *argv[]){
@@ -51,8 +52,10 @@ int main(int argc, char *argv[]){
 
     clock_t begin = clock();
     args_t args;
+    args.th_n = n_threads;
 
-    for(int i = 0; i<n_threads; i++)
+    for(int i = 0; i<n_threads; i++){
+        args.th_i = i;
         if(strcmp(mode, "sign") == 0){
             pthread_create(&threads[i], NULL, sign_mode_thread, (void *)&args);
         }else if(strcmp(mode, "block") == 0){
@@ -61,6 +64,7 @@ int main(int argc, char *argv[]){
             pthread_create(&threads[i], NULL, interleaved_mode_thread, (void *)&args);
         }else 
             exit(EXIT_FAILURE);
+    }
     
     wait_for_threads(n_threads, threads);
 
@@ -158,6 +162,8 @@ void wait_for_threads(int n_threads, pthread_t *threads){
 void *sign_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
     clock_t begin = clock();
+
+
 
     int time = (clock() - begin) / CLOCKS_PER_SEC;
     pthread_exit(&time);
