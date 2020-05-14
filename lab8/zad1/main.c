@@ -16,12 +16,21 @@
 #include <stdio.h>
 #include <time.h> 
 
+#define N_COLORS 256
+ 
 int **read_image(char *filename, int *width, int *height);
 void free_img(int **img, int height);
+void print_hist(int *hist, char *file_out);
+void wait_for_threads(int n_threads, pthread_t *threads);
 
 void *sign_mode_thread(void *args);
 void *block_mode_thread(void *args);
 void *interleaved_mode_thread(void *args);
+
+// Global variables that are shared within all threads
+int img_width, img_height;
+int **image;
+int *hist;
 
 typedef struct{
 
@@ -37,8 +46,8 @@ int main(int argc, char *argv[]){
 
     pthread_t *threads = (pthread_t *)malloc(n_threads * sizeof(pthread_t));
 
-    int img_width, img_height;
-    int ** image = read_image(file_in, &img_width, &img_height);
+    image = read_image(file_in, &img_width, &img_height);
+    hist = (int *)malloc(N_COLORS*sizeof(int));
 
     args_t args;
 
@@ -51,7 +60,11 @@ int main(int argc, char *argv[]){
             pthread_create(&threads[i], NULL, interleaved_mode_thread, (void *)&args);
         }else 
             exit(EXIT_FAILURE);
-
+    
+    wait_for_threads(n_threads, threads);
+    print_hist(hist, file_out);
+    free(hist);
+    free(threads);
     free_img(image, img_height);
 }
 
@@ -117,14 +130,38 @@ void free_img(int **img, int height){
     free(img);
 }
 
-void *sign_mode_thread(void *args){
+void print_hist(int *hist, char *file_out){
+    FILE *out = NULL;
+    if(file_out != NULL)
+        out = fopen(file_out, "w");
+    
+    for(int c = 0; c<N_COLORS; c++){
+        printf("%d: %d\n", c, hist[c]);
+        if(out != NULL)
+            fprintf(out,"%d: %d\n", c, hist[c]);
+    }
+    if(out != NULL)
+        fclose(out);
+}
 
+void wait_for_threads(int n_threads, pthread_t *threads){
+    void *rval_ptr=NULL;
+    while(--n_threads >= 0){
+        pthread_join(threads[n_threads],&rval_ptr);
+        printf("Thread %d took %d seconds.", n_threads, (int)(*((int *)rval_ptr)));
+    }
+}
+
+void *sign_mode_thread(void *args){
+    args_t *args_ = (args_t *)args;
 }
 
 void *block_mode_thread(void *args){
+    args_t *args_ = (args_t *)args;
 
 }
 
 void *interleaved_mode_thread(void *args){
+    args_t *args_ = (args_t *)args;
 
 }
