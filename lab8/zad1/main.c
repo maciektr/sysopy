@@ -49,6 +49,7 @@ int main(int argc, char *argv[]){
     image = read_image(file_in, &img_width, &img_height);
     hist = (int *)malloc(N_COLORS*sizeof(int));
 
+    clock_t begin = clock();
     args_t args;
 
     for(int i = 0; i<n_threads; i++)
@@ -62,6 +63,8 @@ int main(int argc, char *argv[]){
             exit(EXIT_FAILURE);
     
     wait_for_threads(n_threads, threads);
+
+    printf("Execution time: %d\n", (clock() - begin) / CLOCKS_PER_SEC);
     print_hist(hist, file_out);
     free(hist);
     free(threads);
@@ -154,14 +157,24 @@ void wait_for_threads(int n_threads, pthread_t *threads){
 
 void *sign_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
+    clock_t begin = clock();
+
+    int time = (clock() - begin) / CLOCKS_PER_SEC;
+    pthread_exit(&time);
 }
 
 void *block_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
+    clock_t begin = clock();
 
+    int time = (clock() - begin) / CLOCKS_PER_SEC;
+    pthread_exit(&time);
 }
 
 void *interleaved_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
+    clock_t begin = clock();
 
+    int time = (clock() - begin) / CLOCKS_PER_SEC;
+    pthread_exit(&time);
 }
