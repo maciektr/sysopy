@@ -1,4 +1,5 @@
 Testy wykonane z użyciem obrazu tests/baboon.pgm 
+Rozmiar 512x512
 
 Liczba watkow: 1
 Thread 0 took 0.002426 seconds.
