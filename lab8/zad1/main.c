@@ -35,6 +35,7 @@ int *hist;
 typedef struct{
     int th_i;
     int th_n;
+    double *retval;
 } args_t;
 
 int main(int argc, char *argv[]){
@@ -46,16 +47,23 @@ int main(int argc, char *argv[]){
     char *file_out = argv[4];
 
     pthread_t *threads = (pthread_t *)malloc(n_threads * sizeof(pthread_t));
+    double *rval = (double *)malloc(n_threads * sizeof(double));
 
     image = read_image(file_in, &img_width, &img_height, &max_color);
-    hist = (int *)malloc(N_COLORS*sizeof(int));
 
-    clock_t begin = clock();
+    hist = (int *)malloc(N_COLORS*sizeof(int));
+    for(int i = 0; i<N_COLORS; i++)
+        hist[i] = 0;
+
+    struct timespec start, finish;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     args_t args;
     args.th_n = n_threads;
 
     for(int i = 0; i<n_threads; i++){
         args.th_i = i;
+        args.retval = &rval[i];
         if(strcmp(mode, "sign") == 0){
             pthread_create(&threads[i], NULL, sign_mode_thread, (void *)&args);
         }else if(strcmp(mode, "block") == 0){
@@ -65,23 +73,28 @@ int main(int argc, char *argv[]){
         }else 
             exit(EXIT_FAILURE);
     }
-    
+
     wait_for_threads(n_threads, threads);
 
-    printf("Execution time: %d\n", (clock() - begin) / CLOCKS_PER_SEC);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    double elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+    printf("Execution time: %f s\n", elapsed);
     print_hist(hist, file_out);
     free(hist);
     free(threads);
+    free(rval);
     free_img(image, img_height);
 }
 
-int **read_image(char *filename, int *width, int *height, int *max_color){
+int **read_image(char *filename, int *width, int *height, int *max_color_val){
     FILE *file = fopen(filename, "r");
 
     char *line = NULL;
     size_t len = 0; 
     assert(getline(&line, &len, file) != -1);
-    assert(strcmp(line, "P2") == 0);
+    assert(strcmp(line, "P2\n") == 0);
 
     // Read width and height
     while(getline(&line, &len, file) != -1)
@@ -109,7 +122,7 @@ int **read_image(char *filename, int *width, int *height, int *max_color){
         else{
             char *pch = strtok(line, " "); 
             assert(pch != NULL);
-            *max_color = atoi(pch);
+            *max_color_val = atoi(pch);
             break;
         }
 
@@ -141,15 +154,15 @@ void free_img(int **img, int height){
     free(img);
 }
 
-void print_hist(int *hist, char *file_out){
+void print_hist(int *histogram, char *file_out){
     FILE *out = NULL;
     if(file_out != NULL)
         out = fopen(file_out, "w");
     
     for(int c = 0; c<N_COLORS; c++){
-        printf("%d: %d\n", c, hist[c]);
+        printf("%d: %d\n", c, histogram[c]);
         if(out != NULL)
-            fprintf(out,"%d: %d\n", c, hist[c]);
+            fprintf(out,"%d: %d\n", c, histogram[c]);
     }
     if(out != NULL)
         fclose(out);
@@ -159,32 +172,48 @@ void wait_for_threads(int n_threads, pthread_t *threads){
     void *rval_ptr=NULL;
     while(--n_threads >= 0){
         pthread_join(threads[n_threads],&rval_ptr);
-        printf("Thread %d took %d seconds.", n_threads, (int)(*((int *)rval_ptr)));
+        printf("Thread %d took %f seconds.\n", n_threads, (double)(*((double *)rval_ptr)));
     }
 }
 
 void *sign_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
-    clock_t begin = clock();
+    struct timespec start, finish;
+    clock_gettime(_POSIX_MONOTONIC_CLOCK, &start);
 
+    for(int i = 0; i<img_height; i++)
+        for(int k = 0; k<img_width; k++)
+            if((image[i][k] % args_->th_n) == (args_->th_i-1))
+                hist[image[i][k]]++;
 
-
-    int time = (clock() - begin) / CLOCKS_PER_SEC;
-    pthread_exit(&time);
+    clock_gettime(_POSIX_MONOTONIC_CLOCK, &finish);
+    *(args_->retval) = (finish.tv_sec - start.tv_sec);
+    *(args_->retval) += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    pthread_exit(args_->retval);
 }
 
 void *block_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
-    clock_t begin = clock();
+    struct timespec start, finish;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
-    int time = (clock() - begin) / CLOCKS_PER_SEC;
-    pthread_exit(&time);
+    printf("%d\n", args_->th_i);
+
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    *(args_->retval) = (finish.tv_sec - start.tv_sec);
+    *(args_->retval) += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    pthread_exit(args_->retval);
 }
 
 void *interleaved_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
-    clock_t begin = clock();
+    struct timespec start, finish;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    
+    printf("%d\n", args_->th_i);
 
-    int time = (clock() - begin) / CLOCKS_PER_SEC;
-    pthread_exit(&time);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    *(args_->retval) = (finish.tv_sec - start.tv_sec);
+    *(args_->retval) += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    pthread_exit(args_->retval);
 }
