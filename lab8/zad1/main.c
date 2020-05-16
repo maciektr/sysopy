@@ -18,7 +18,7 @@
 
 #define N_COLORS 256
  
-int **read_image(char *filename, int *width, int *height);
+int **read_image(char *filename, int *width, int *height, int *max_color);
 void free_img(int **img, int height);
 void print_hist(int *hist, char *file_out);
 void wait_for_threads(int n_threads, pthread_t *threads);
@@ -28,7 +28,7 @@ void *block_mode_thread(void *args);
 void *interleaved_mode_thread(void *args);
 
 // Global variables that are shared within all threads
-int img_width, img_height;
+int img_width, img_height, max_color;
 int **image;
 int *hist;
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){
 
     pthread_t *threads = (pthread_t *)malloc(n_threads * sizeof(pthread_t));
 
-    image = read_image(file_in, &img_width, &img_height);
+    image = read_image(file_in, &img_width, &img_height, &max_color);
     hist = (int *)malloc(N_COLORS*sizeof(int));
 
     clock_t begin = clock();
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
     free_img(image, img_height);
 }
 
-int **read_image(char *filename, int *width, int *height){
+int **read_image(char *filename, int *width, int *height, int *max_color){
     FILE *file = fopen(filename, "r");
 
     char *line = NULL;
@@ -102,12 +102,16 @@ int **read_image(char *filename, int *width, int *height){
     for(int i = 0; i<(*height); i++)
         img[i] = (int *)malloc((*width) * sizeof(int));
 
-    // Ignore the one line with max gray val
+    // Read max color value
     while(getline(&line, &len, file) != -1)
         if(line[0] == '#')
             continue;
-        else
+        else{
+            char *pch = strtok(line, " "); 
+            assert(pch != NULL);
+            *max_color = atoi(pch);
             break;
+        }
 
     // Read img
     int w=0,h=0;
