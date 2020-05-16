@@ -58,18 +58,18 @@ int main(int argc, char *argv[]){
     struct timespec start, finish;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-    args_t args;
-    args.th_n = n_threads;
+    args_t *args=(args_t *)malloc(n_threads * sizeof(args_t));
 
     for(int i = 0; i<n_threads; i++){
-        args.th_i = i;
-        args.retval = &rval[i];
+        args[i].th_n = n_threads;
+        args[i].th_i = i;
+        args[i].retval = &rval[i];
         if(strcmp(mode, "sign") == 0){
-            pthread_create(&threads[i], NULL, sign_mode_thread, (void *)&args);
+            pthread_create(&threads[i], NULL, sign_mode_thread, (void *)&args[i]);
         }else if(strcmp(mode, "block") == 0){
-            pthread_create(&threads[i], NULL, block_mode_thread, (void *)&args);
+            pthread_create(&threads[i], NULL, block_mode_thread, (void *)&args[i]);
         }else if(strcmp(mode, "interleaved") == 0){
-            pthread_create(&threads[i], NULL, interleaved_mode_thread, (void *)&args);
+            pthread_create(&threads[i], NULL, interleaved_mode_thread, (void *)&args[i]);
         }else 
             exit(EXIT_FAILURE);
     }
@@ -85,6 +85,7 @@ int main(int argc, char *argv[]){
     free(hist);
     free(threads);
     free(rval);
+    free(args);
     free_img(image, img_height);
 }
 
@@ -209,8 +210,13 @@ void *interleaved_mode_thread(void *args){
     args_t *args_ = (args_t *)args;
     struct timespec start, finish;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    
-    printf("%d\n", args_->th_i);
+
+    int k = args_->th_i;
+    while(k < img_width){
+        for(int i = 0; i<img_height; i++)
+            hist[image[i][k]]++;
+        k += args_->th_n;
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &finish);
     *(args_->retval) = (finish.tv_sec - start.tv_sec);
