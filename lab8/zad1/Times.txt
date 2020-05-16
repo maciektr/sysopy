@@ -1,0 +1,28 @@
+Testy wykonane z użyciem obrazu tests/baboon.pgm 
+
+Liczba watkow: 1
+Thread 0 took 0.002426 seconds.
+Execution time: 0.003105 s
+
+Liczba watkow: 2
+Thread 1 took 0.003857 seconds.
+Thread 0 took 0.003413 seconds.
+Execution time: 0.004302 s
+
+Liczba watkow: 4
+Thread 3 took 0.005376 seconds.
+Thread 2 took 0.005227 seconds.
+Thread 1 took 0.003148 seconds.
+Thread 0 took 0.003045 seconds.
+Execution time: 0.005902 s
+
+Liczba watkow: 8
+Thread 7 took 0.005176 seconds.
+Thread 6 took 0.005511 seconds.
+Thread 5 took 0.005617 seconds.
+Thread 4 took 0.004401 seconds.
+Thread 3 took 0.005863 seconds.
+Thread 2 took 0.005858 seconds.
+Thread 1 took 0.005345 seconds.
+Thread 0 took 0.003959 seconds.
+Execution time: 0.006331 s
