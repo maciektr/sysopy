@@ -1,6 +1,7 @@
 Testy wykonane z użyciem obrazu tests/baboon.pgm 
 Rozmiar 512x512
 
+Tryb: sign
 Liczba watkow: 1
 Thread 0 took 0.002426 seconds.
 Execution time: 0.003105 s
@@ -27,3 +28,59 @@ Thread 2 took 0.005858 seconds.
 Thread 1 took 0.005345 seconds.
 Thread 0 took 0.003959 seconds.
 Execution time: 0.006331 s
+
+Tryb: block
+Liczba watkow: 1
+Thread 0 took 0.002471 seconds.
+Execution time: 0.003363 s
+
+Liczba watkow: 2
+Thread 1 took 0.001238 seconds.
+Thread 0 took 0.001216 seconds.
+Execution time: 0.001968 s
+
+Liczba watkow: 4
+Thread 3 took 0.000910 seconds.
+Thread 2 took 0.000956 seconds.
+Thread 1 took 0.000818 seconds.
+Thread 0 took 0.000777 seconds.
+Execution time: 0.001644 s
+
+Liczba watkow: 8 
+Thread 7 took 0.001074 seconds.
+Thread 6 took 0.001073 seconds.
+Thread 5 took 0.000919 seconds.
+Thread 4 took 0.001203 seconds.
+Thread 3 took 0.001296 seconds.
+Thread 2 took 0.001119 seconds.
+Thread 1 took 0.001127 seconds.
+Thread 0 took 0.000557 seconds.
+Execution time: 0.001909 s
+
+Tryb: interleaved
+Liczba watkow: 1
+Thread 0 took 0.001984 seconds.
+Execution time: 0.002757 s
+
+Liczba watkow: 2
+Thread 1 took 0.002272 seconds.
+Thread 0 took 0.002077 seconds.
+Execution time: 0.002897 s
+
+Liczba watkow: 4
+Thread 3 took 0.001052 seconds.
+Thread 2 took 0.001060 seconds.
+Thread 1 took 0.001123 seconds.
+Thread 0 took 0.001195 seconds.
+Execution time: 0.001999 s
+
+Liczba watkow: 8 
+Thread 7 took 0.001199 seconds.
+Thread 6 took 0.000481 seconds.
+Thread 5 took 0.001327 seconds.
+Thread 4 took 0.001316 seconds.
+Thread 3 took 0.001372 seconds.
+Thread 2 took 0.001433 seconds.
+Thread 1 took 0.001480 seconds.
+Thread 0 took 0.001507 seconds.
+Execution time: 0.002700 s
