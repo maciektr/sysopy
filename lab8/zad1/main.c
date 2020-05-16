@@ -184,7 +184,7 @@ void *sign_mode_thread(void *args){
 
     for(int i = 0; i<img_height; i++)
         for(int k = 0; k<img_width; k++)
-            if((image[i][k] % args_->th_n) == (args_->th_i-1))
+            if((image[i][k] % args_->th_n) == (args_->th_i))
                 hist[image[i][k]]++;
 
     clock_gettime(_POSIX_MONOTONIC_CLOCK, &finish);
@@ -198,7 +198,11 @@ void *block_mode_thread(void *args){
     struct timespec start, finish;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-    printf("%d\n", args_->th_i);
+    int low = args_->th_i * ((img_width / args_->th_n) + (img_width % args_->th_n == 0 ? 0 : 1));
+    int high = (args_->th_i + 1) * ((img_width / args_->th_n) + (img_width % args_->th_n == 0 ? 0 : 1));
+    for(int i = low; i<high && i<img_width; i++)
+        for(int k = 0; k<img_height; k++)
+            hist[image[k][i]]++;
 
     clock_gettime(CLOCK_MONOTONIC, &finish);
     *(args_->retval) = (finish.tv_sec - start.tv_sec);
