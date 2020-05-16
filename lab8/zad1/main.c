@@ -130,11 +130,15 @@ int **read_image(char *filename, int *width, int *height, int *max_color_val){
     // Read img
     int w=0,h=0;
     while(getline(&line, &len, file) != -1){
+        if(h >= img_height)
+            break;
         if(line[0] == '#')
             continue;
         else{
             char *pch = strtok(line, " ");
             while(pch != NULL){
+                if(w >= img_width)
+                    break;
                 img[h][w] = atoi(pch);
                 w++;
                 pch = strtok(NULL," ");
