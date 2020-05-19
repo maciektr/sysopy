@@ -1,13 +1,14 @@
 #include <linux/limits.h>
 #include <sys/resource.h>
+#include <stdatomic.h>
 #include <sys/types.h> 
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/file.h>
 #include <sys/time.h>
 #include <stdbool.h> 
+#include <pthread.h>
 #include <stdlib.h>
-#include<pthread.h>
 #include <assert.h>
 #include <string.h>
 #include <getopt.h>
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]){
 
     hist = (int *)malloc(N_COLORS*sizeof(int));
     for(int i = 0; i<N_COLORS; i++)
-        hist[i] = 0;
+        atomic_init(&hist[i],0);
 
     struct timespec start, finish;
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -165,9 +166,9 @@ void print_hist(int *histogram, char *file_out){
         out = fopen(file_out, "w");
     
     for(int c = 0; c<N_COLORS; c++){
-        printf("%d: %d\n", c, histogram[c]);
+        printf("%d: %d\n", c, atomic_load(&histogram[c]));
         if(out != NULL)
-            fprintf(out,"%d: %d\n", c, histogram[c]);
+            fprintf(out,"%d: %d\n", c, atomic_load(&histogram[c]));
     }
     if(out != NULL)
         fclose(out);
@@ -189,7 +190,7 @@ void *sign_mode_thread(void *args){
     for(int i = 0; i<img_height; i++)
         for(int k = 0; k<img_width; k++)
             if((image[i][k] % args_->th_n) == (args_->th_i))
-                hist[image[i][k]]++;
+                __atomic_fetch_add(&hist[image[i][k]], 1, __ATOMIC_RELAXED);
 
     clock_gettime(_POSIX_MONOTONIC_CLOCK, &finish);
     *(args_->retval) = (finish.tv_sec - start.tv_sec);
@@ -206,7 +207,7 @@ void *block_mode_thread(void *args){
     int high = (args_->th_i + 1) * ((img_width / args_->th_n) + (img_width % args_->th_n == 0 ? 0 : 1));
     for(int i = low; i<high && i<img_width; i++)
         for(int k = 0; k<img_height; k++)
-            hist[image[k][i]]++;
+            __atomic_fetch_add(&hist[image[i][k]], 1, __ATOMIC_RELAXED);
 
     clock_gettime(CLOCK_MONOTONIC, &finish);
     *(args_->retval) = (finish.tv_sec - start.tv_sec);
@@ -222,7 +223,7 @@ void *interleaved_mode_thread(void *args){
     int k = args_->th_i;
     while(k < img_width){
         for(int i = 0; i<img_height; i++)
-            hist[image[i][k]]++;
+            __atomic_fetch_add(&hist[image[i][k]], 1, __ATOMIC_RELAXED);
         k += args_->th_n;
     }
 
