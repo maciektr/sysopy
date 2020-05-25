@@ -19,5 +19,5 @@ debug_fast:
 clean:
 	rm -f $(OUT) *.o *.out
 
-test: main 
-	./main.out 8 sign ./tests/baboon.pgm out.txt
+# test: main 
+	# ./main.out 8 sign ./tests/baboon.pgm out.txt
