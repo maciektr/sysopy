@@ -16,6 +16,12 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <time.h> 
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <netdb.h>
+
+#include "common.h"
 
 int main(int argc, char *argv[]){
     assert(argc == 3);
