@@ -24,9 +24,11 @@
 #include <netdb.h>
 
 #include "common.h"
+int server_fd = -1;
 
-int get_connection(conn_mode_t mode, char *name, char *address);
 void read_args(int argc, char *argv[], char *name, char *server_ip, conn_mode_t *connection_mode);
+int get_connection(conn_mode_t mode, char *name, char *address);
+void handle_msg(int server_fd, msg_t *msg);
 void atexit_handle();
 void stop_sig();
 
@@ -38,10 +40,51 @@ int main(int argc, char *argv[]){
     atexit(atexit_handle);
     signal(SIGINT, stop_sig);
 
-    int server_fd = get_connection(connection_mode, name, address);
+    server_fd = get_connection(connection_mode, name, address);
     assert(server_fd != -1);
 
+    while(1){
+        msg_t msg;
+        read_msg(server_fd, &msg);
+        handle_msg(server_fd, &msg);
+    }
+}
+
+void game_mode(char mark){
+    if(mark == 'X'){
+
+    }
+    while(1){
+        
+    }
+}
+
+void handle_msg(int server_fd, msg_t *msg){
+    switch (msg->type)
+    {
+    case WAIT_GAME:
+        puts("Waiting for other players.");
+        break;
     
+    case START_GAME:
+        puts("Player found. Game starting.");
+        char mark = msg->body[0];
+        printf("Your mark: %c\n", mark);
+        
+        game_mode(mark);
+        break;
+
+    case PING: ;
+        msg_t msg;
+        msg.type = PING;
+        msg.body[0] = '\0';
+        send_msg(server_fd, &msg);
+        break;
+
+    default:
+        puts("Unrecognized message type.");
+        break;
+    }
 }
 
 int get_connection(conn_mode_t mode, char *name, char *address){
@@ -73,7 +116,13 @@ int get_connection(conn_mode_t mode, char *name, char *address){
     msg.type = CONN_INIT;
     strcpy(msg.body, name);
     send_msg(socket_fd, &msg);
-    return socket_fd;
+    read_msg(socket_fd, &msg);
+    if(msg.type == ACC_INIT){
+        puts("Server connected.");
+        return socket_fd;
+    }
+    printf("Connection failed with message:\n%s\n", msg.body);
+    return -1;
 }
 
 void read_args(int argc, char *argv[], char *name, char *address, conn_mode_t *connection_mode){
@@ -98,7 +147,13 @@ void read_args(int argc, char *argv[], char *name, char *address, conn_mode_t *c
 }
 
 void atexit_handle() {
+    msg_t msg;
+    msg.type = CLOSE;
+    msg.body[0] = '\0';
+    send_msg(server_fd, &msg);
 
+    assert(shutdown(server_fd, SHUT_RDWR) >= 0);
+    assert(close(server_fd) >= 0);
 }
 
 void stop_sig(){
