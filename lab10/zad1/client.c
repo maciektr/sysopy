@@ -88,9 +88,56 @@ void print_board(board_t *board){
 
 void set_sign(int id){
     msg_t msg;
-    msg.type = SET_SIGN;
+    msg.type = SIGN_GAME;
     sprintf(msg.body, "%d", id);
     send_msg(server_fd, &msg);
+}
+
+void ping_resp(){
+    msg_t msg;
+    msg.type = PING;
+    msg.body[0] = '\0';
+    send_msg(server_fd, &msg);
+}
+
+void register_move(){
+    puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
+    int id = -1;
+    scanf("%d", &id);
+    while(id <= 0 || id > BOARD_N_CELLS){
+        puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
+        scanf("%d", &id);
+    }
+    set_sign(id);
+}
+
+void game_mode_handle_msg(msg_t *msg, board_t *board){
+    switch (msg->type)
+    {
+    case CLOSE_GAME:
+        printf("Game finished with message: %s\n", msg->body);
+        break;
+
+    case PING:
+        ping_resp();
+        break;
+
+    case SIGN_GAME:
+        puts("Aktualizacja planszy.");
+        board_u un;
+        strcpy(un.raw, msg->body);
+        *board = un.board;
+        print_board(board);
+        break;
+
+    case MOVE_GAME: 
+        register_move();
+        break;
+    
+    default:
+        puts("Unrecognized message type.");
+        break;
+    }
 }
 
 void game_mode(char mark){
@@ -100,18 +147,13 @@ void game_mode(char mark){
 
     if(mark == 'X'){
         print_board(&board);
-        puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
-        int id = -1;
-        scanf("%d", &id);
-        while(id <= 0 || id > BOARD_N_CELLS){
-            puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
-            scanf("%d", &id);
-        }
-        set_sign(id);
+        register_move();
     }
 
     while(1){
-        
+        msg_t msg;
+        read_msg(server_fd, &msg);
+        game_mode_handle_msg(server_fd, &msg);
     }
 }
 
@@ -130,11 +172,8 @@ void handle_msg(int server_fd, msg_t *msg){
         game_mode(mark);
         break;
 
-    case PING: ;
-        msg_t msg;
-        msg.type = PING;
-        msg.body[0] = '\0';
-        send_msg(server_fd, &msg);
+    case PING:
+        ping_resp();
         break;
 
     default:
@@ -204,7 +243,7 @@ void read_args(int argc, char *argv[], char *name, char *address, conn_mode_t *c
 
 void atexit_handle() {
     msg_t msg;
-    msg.type = CLOSE;
+    msg.type = CLOSE_GAME;
     msg.body[0] = '\0';
     send_msg(server_fd, &msg);
 
