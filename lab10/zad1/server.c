@@ -34,6 +34,7 @@ struct pollfd polls[MAX_CLIENTS+2];
 int active_clients = 0;
 board_t *boards[MAX_CLIENTS];
 int active_boards = 0;
+int client_waiting = -1;
 
 int socket_unix_fd = -1;
 int socket_inet_fd = -1;
@@ -45,8 +46,8 @@ pthread_t server_thread = -1;
 
 void run_server(char *path, int port);
 void atexit_handle();
-void server_handle();
-void ping_handle();
+void *server_handle();
+void *ping_handle();
 void stop_sig();
 void remove_client(int i);
 
@@ -116,7 +117,7 @@ void stop_sig(){
     exit(EXIT_SUCCESS);
 }
 
-void ping_handle(){
+void *ping_handle(){
     while(1){
         sleep(PING_SLEEP);
         puts("Pinging.");
@@ -159,11 +160,58 @@ void update_polls(struct pollfd *polls){
     polls[MAX_CLIENTS + 1].revents = 0;
 }
 
+
+void make_match(){
+    if(client_waiting == -1){
+        client_waiting = active_clients;
+        return;
+    }
+    for(int k = 0; k < BOARD_N_CELLS; k++)
+        boards[active_boards]->values[k] = FREE;
+    clients[client_waiting]->board_id = active_boards;
+    clients[active_clients]->board_id = active_boards;
+
+    boards[active_boards]->player1 = active_clients;
+    boards[active_boards]->player2 = client_waiting;
+
+    msg_t msg;
+    msg.type = START_GAME;
+    
+    strcpy(msg.body,"X");
+    send_msg(clients[active_clients]->client_fd, &msg);
+    clients[active_clients]->mark = X;
+    strcpy(msg.body,"O");
+    send_msg(clients[client_waiting]->client_fd, &msg);
+    clients[client_waiting]->mark = O;
+
+    active_boards++;
+}
+
 void pollin_on_spec(struct pollfd *polls, int id){
     if(polls[id].revents & POLLIN){
-        // int registered_index = process_login(fds[i].fd);
-        // printf("Client registered at index %d\n", registered_index);
-        // if(registered_index >= 0) make_match(registered_index);
+        int client_socket_fd = accept(polls[id].fd, NULL, NULL);
+        assert(client_socket_fd >= 0);
+        msg_t msg;
+        read_msg(client_socket_fd, &msg);
+        assert(msg.type == CONN_INIT);
+
+        if(active_clients >= MAX_CLIENTS){
+            msg.type = REJ_INIT;
+            msg.body[0] = '\0';
+            send_msg(client_socket_fd, &msg);
+            assert(shutdown(client_socket_fd, SHUT_RDWR) >= 0);
+            assert(close(client_socket_fd) < 0);
+        }   
+        
+        strcpy(clients[active_clients]->name, msg.body);
+        clients[active_clients]->board_id = -1;
+        clients[active_clients]->ping_resp = 0;
+        msg.type = ACC_INIT;
+        msg.body[0] = '\0';
+
+        make_match();
+
+        active_clients++;
     }
 }
 
@@ -172,9 +220,11 @@ void remove_client(int i){
     assert(close(clients[i]->client_fd) < 0);
     clients[i] = clients[--active_clients];
     polls[i]  = polls[active_clients];
+    if(client_waiting == active_clients)
+        client_waiting = i;
 }
 
-void server_handle(){
+void *server_handle(){
     polls[MAX_CLIENTS + 1].fd = socket_unix_fd;
     polls[MAX_CLIENTS + 1].events = POLLIN;
     polls[MAX_CLIENTS]. fd = socket_inet_fd;
