@@ -32,6 +32,8 @@ void handle_msg(int server_fd, msg_t *msg);
 void atexit_handle();
 void stop_sig();
 
+void game_mode(char mark);
+
 int main(int argc, char *argv[]){
     char *name, *address;
     conn_mode_t connection_mode;
@@ -50,10 +52,64 @@ int main(int argc, char *argv[]){
     }
 }
 
-void game_mode(char mark){
-    if(mark == 'X'){
+void print_board(board_t *board){
+    const int CELL_WIDTH = 3;
+    const int CELL_HEIGHT = 1;
+    
 
+    for(int b_h = 0; b_h < BOARD_HEIGHT; b_h++){
+        for(int i = 0; i<BOARD_WIDTH*CELL_WIDTH; i++)
+            printf("-");    
+        printf("\n");
+        for(int c_h = 0; c_h < CELL_HEIGHT; c_h++){
+            for(int b_w = 0; b_w < BOARD_WIDTH; b_w++){
+                for(int k = 0; k<CELL_WIDTH; k++){
+                    if(k == 0 || k == CELL_WIDTH-1)
+                        printf("|");
+                    else if(k == CELL_WIDTH / 2 && c_h == CELL_HEIGHT / 2){
+                        int cell_id = b_h * BOARD_WIDTH + b_w;
+                        if(board->values[cell_id] == FREE)
+                            printf("%d", cell_id + 1);
+                        else if (board->values[cell_id] == X)
+                            printf("X");
+                        else if (board->values[cell_id] == O)
+                            printf("O");
+                    }else 
+                        printf(" ");
+                }
+            }
+            printf("\n");
+        }
     }
+    for(int i = 0; i<BOARD_WIDTH*CELL_WIDTH; i++)
+        printf("-");      
+    printf("\n"); 
+}
+
+void set_sign(int id){
+    msg_t msg;
+    msg.type = SET_SIGN;
+    sprintf(msg.body, "%d", id);
+    send_msg(server_fd, &msg);
+}
+
+void game_mode(char mark){
+    board_t board;
+    for(int i = 0; i<BOARD_N_CELLS; i++)
+        board.values[i] = FREE;
+
+    if(mark == 'X'){
+        print_board(&board);
+        puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
+        int id = -1;
+        scanf("%d", &id);
+        while(id <= 0 || id > BOARD_N_CELLS){
+            puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
+            scanf("%d", &id);
+        }
+        set_sign(id);
+    }
+
     while(1){
         
     }
