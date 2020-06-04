@@ -61,6 +61,11 @@ int main(int argc, char *argv[]){
     atexit(atexit_handle);
     signal(SIGINT, stop_sig);   
 
+    for(int i = 0; i<MAX_CLIENTS; i++){
+        clients[i] = (client *)malloc(sizeof(client));
+        boards[i] = (board_t *)malloc(sizeof(board_t));
+    }
+
     run_server(socket_path, port);
 
     assert(pthread_create(&ping_thread, NULL, ping_handle, NULL) >= 0);
@@ -78,13 +83,15 @@ void run_server(char *path, int port){
     socket_unix_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     assert(socket_unix_fd >= 0);
     assert(bind(socket_unix_fd, (struct sockaddr *)&socket_unix, sizeof(socket_unix)) >= 0);
+    // if(bind(socket_unix_fd, (struct sockaddr *)&socket_unix, sizeof(socket_unix)) < 0)
+    //     perror("BIND");
     assert(listen(socket_unix_fd, MAX_CLIENTS) >= 0);
     printf("Unix socket ready on: %s\n", path);
 
     struct sockaddr_in socket_inet;
 
     struct hostent* local_hostent = gethostbyname("localhost");
-    struct in_addr address = *(struct in_addr*) local_hostent->h_addr;
+    struct in_addr address = *((struct in_addr*)(local_hostent->h_addr));
 
     socket_inet.sin_family = AF_INET;
     socket_inet.sin_port = htons(port);
@@ -93,7 +100,10 @@ void run_server(char *path, int port){
     socket_inet_fd = socket(AF_INET, SOCK_STREAM, 0);
     assert(socket_inet_fd  >= 0);
     assert(bind(socket_inet_fd, (struct sockaddr*) &socket_inet, sizeof(socket_inet)) >= 0);
+    // if(bind(socket_inet_fd, (struct sockaddr*) &socket_inet, sizeof(socket_inet)) <0)
+        // perror("bind2");
     assert(listen(socket_inet_fd, MAX_CLIENTS) >= 0);
+    // listen(socket_inet_fd, MAX_CLIENTS);
     printf("Inet socket ready on: %s:%d\n", inet_ntoa(address), port);
 }
 
@@ -105,12 +115,18 @@ void atexit_handle() {
         send_msg(clients[i]->client_fd, &msg);
 
     assert(pthread_cancel(ping_thread) >= 0);
+    assert(pthread_cancel(server_thread) >= 0);
 
     assert(shutdown(socket_unix_fd, SHUT_RDWR) >= 0);
     assert(close(socket_unix_fd) >= 0);
     assert(unlink(socket_path) >= 0);
     assert(shutdown(socket_inet_fd, SHUT_RDWR) >= 0);
     assert(close(socket_inet_fd) >= 0);
+
+    for(int i = 0; i<MAX_CLIENTS; i++){
+        free(clients[i]);
+        free(boards[i]);
+    }
 }
 
 void stop_sig(){
@@ -160,7 +176,6 @@ void update_polls(struct pollfd *polls){
     polls[MAX_CLIENTS + 1].revents = 0;
 }
 
-
 void make_match(){
     if(client_waiting == -1){
         client_waiting = active_clients;
@@ -171,8 +186,8 @@ void make_match(){
     clients[client_waiting]->board_id = active_boards;
     clients[active_clients]->board_id = active_boards;
 
-    boards[active_boards]->player1 = active_clients;
-    boards[active_boards]->player2 = client_waiting;
+    boards[active_boards]->players[0] = active_clients;
+    boards[active_boards]->players[1] = client_waiting;
 
     msg_t msg;
     msg.type = START_GAME;
@@ -180,6 +195,7 @@ void make_match(){
     strcpy(msg.body,"X");
     send_msg(clients[active_clients]->client_fd, &msg);
     clients[active_clients]->mark = X;
+    boards[active_boards]->move = 0;
     strcpy(msg.body,"O");
     send_msg(clients[client_waiting]->client_fd, &msg);
     clients[client_waiting]->mark = O;
@@ -202,26 +218,56 @@ void pollin_on_spec(struct pollfd *polls, int id){
             assert(shutdown(client_socket_fd, SHUT_RDWR) >= 0);
             assert(close(client_socket_fd) < 0);
         }   
-        
         strcpy(clients[active_clients]->name, msg.body);
         clients[active_clients]->board_id = -1;
         clients[active_clients]->ping_resp = 0;
+        clients[active_clients]->client_fd = client_socket_fd;
         msg.type = ACC_INIT;
         msg.body[0] = '\0';
-
+        send_msg(client_socket_fd, &msg);
         make_match();
 
+        printf("Client connected: %s\n", clients[active_clients]->name);
         active_clients++;
     }
 }
 
 void remove_client(int i){
-    assert(shutdown(clients[i]->client_fd, SHUT_RDWR) >= 0);
-    assert(close(clients[i]->client_fd) < 0);
+    if(clients[i]->board_id != -1){
+        msg_t msg;
+        msg.type = CLOSE_GAME;
+        strcpy(msg.body, "Twoj przeciwnik rozlaczyl sie.");
+        int opponent_id = boards[clients[i]->board_id]->players[0];
+        if(opponent_id == i)
+            opponent_id = boards[clients[i]->board_id]->players[1];
+        send_msg(clients[opponent_id]->client_fd, &msg);
+    }
+    if(shutdown(clients[i]->client_fd, SHUT_RDWR) < 0)
+        perror("shutdown");
+    assert(close(clients[i]->client_fd) >= 0);
     clients[i] = clients[--active_clients];
+    for(int t = 0; t<2; t++)
+        if(boards[clients[i]->board_id]->players[t] == active_clients)
+            boards[clients[i]->board_id]->players[t] = i;
     polls[i]  = polls[active_clients];
     if(client_waiting == active_clients)
         client_waiting = i;
+}
+
+void sign_received(int client_id, int position){
+    int board_id = clients[client_id]->board_id;
+    int client_to_move = boards[board_id]->players[boards[board_id]->move];
+    if(client_to_move != client_id)
+        return;
+    if(boards[board_id]->values[position] == FREE){
+        boards[board_id]->values[position] = clients[client_id]->mark;
+        boards[board_id]->move = (boards[board_id]->move + 1) % 2;
+    }
+    msg_t msg;
+    msg.type = SIGN_GAME;
+    memcpy(msg.body, (char *)boards[board_id], sizeof(board_t));
+    client_to_move = boards[board_id]->players[boards[board_id]->move];
+    send_msg(clients[client_to_move]->client_fd, &msg);
 }
 
 void *server_handle(){
@@ -245,7 +291,7 @@ void *server_handle(){
                 switch (msg.type)
                 {
                 case SIGN_GAME:
-                    
+                    sign_received(i, atoi(msg.body));
                     break;
 
                 case CLOSE_GAME:

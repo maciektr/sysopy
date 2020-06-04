@@ -25,8 +25,9 @@
 
 #include "common.h"
 int server_fd = -1;
+pthread_t move_thread = -1;
 
-void read_args(int argc, char *argv[], char *name, char *server_ip, conn_mode_t *connection_mode);
+void read_args(int argc, char *argv[], char **name, char **address, conn_mode_t *connection_mode);
 int get_connection(conn_mode_t mode, char *name, char *address);
 void handle_msg(int server_fd, msg_t *msg);
 void atexit_handle();
@@ -37,13 +38,14 @@ void game_mode(char mark);
 int main(int argc, char *argv[]){
     char *name, *address;
     conn_mode_t connection_mode;
-    read_args(argc, argv, name, address, &connection_mode);
+    read_args(argc, argv, &name, &address, &connection_mode);
     
     atexit(atexit_handle);
     signal(SIGINT, stop_sig);
 
     server_fd = get_connection(connection_mode, name, address);
     assert(server_fd != -1);
+    puts("Connected.");
 
     while(1){
         msg_t msg;
@@ -56,7 +58,6 @@ void print_board(board_t *board){
     const int CELL_WIDTH = 3;
     const int CELL_HEIGHT = 1;
     
-
     for(int b_h = 0; b_h < BOARD_HEIGHT; b_h++){
         for(int i = 0; i<BOARD_WIDTH*CELL_WIDTH; i++)
             printf("-");    
@@ -100,7 +101,7 @@ void ping_resp(){
     send_msg(server_fd, &msg);
 }
 
-void register_move(){
+void *register_move(){
     puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
     int id = -1;
     scanf("%d", &id);
@@ -108,7 +109,8 @@ void register_move(){
         puts("Twój ruch! Wybierz pole na którym chcesz postawić X.");
         scanf("%d", &id);
     }
-    set_sign(id);
+    set_sign(id-1);
+    pthread_exit((void *) 0);
 }
 
 void game_mode_handle_msg(msg_t *msg, board_t *board){
@@ -116,6 +118,7 @@ void game_mode_handle_msg(msg_t *msg, board_t *board){
     {
     case CLOSE_GAME:
         printf("Game finished with message: %s\n", msg->body);
+        exit(EXIT_SUCCESS);
         break;
 
     case PING:
@@ -124,14 +127,9 @@ void game_mode_handle_msg(msg_t *msg, board_t *board){
 
     case SIGN_GAME:
         puts("Aktualizacja planszy.");
-        board_u un;
-        strcpy(un.raw, msg->body);
-        *board = un.board;
+        memcpy((char *)board, msg->body, sizeof(board_t));
         print_board(board);
-        break;
-
-    case MOVE_GAME: 
-        register_move();
+        assert(pthread_create(&move_thread, NULL, register_move, NULL) >= 0);
         break;
     
     default:
@@ -147,13 +145,13 @@ void game_mode(char mark){
 
     if(mark == 'X'){
         print_board(&board);
-        register_move();
+        assert(pthread_create(&move_thread, NULL, register_move, NULL) >= 0);
     }
 
     while(1){
         msg_t msg;
         read_msg(server_fd, &msg);
-        game_mode_handle_msg(server_fd, &msg);
+        game_mode_handle_msg(&msg, &board);
     }
 }
 
@@ -188,7 +186,7 @@ int get_connection(conn_mode_t mode, char *name, char *address){
         struct sockaddr_un socket_addr;
         socket_addr.sun_family = AF_UNIX;
         strcpy(socket_addr.sun_path, address);
-        int socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
         assert(socket_fd >= 0);
         assert(connect(socket_fd, (struct sockaddr*)&socket_addr, sizeof(socket_addr))>=0);
     }else if(mode == NET){
@@ -202,7 +200,7 @@ int get_connection(conn_mode_t mode, char *name, char *address){
         socket_addr.sin_port = htons(port_n);
         socket_addr.sin_addr.s_addr = inet_addr(address);
 
-        int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+        socket_fd = socket(AF_INET, SOCK_STREAM, 0);
         assert(socket_fd >= 0);
         assert(connect(socket_fd, (struct sockaddr*)&socket_addr, sizeof(socket_addr))>=0);
     }
@@ -220,13 +218,13 @@ int get_connection(conn_mode_t mode, char *name, char *address){
     return -1;
 }
 
-void read_args(int argc, char *argv[], char *name, char *address, conn_mode_t *connection_mode){
+void read_args(int argc, char *argv[], char **name, char **address, conn_mode_t *connection_mode){
     assert(argc == 4);
 
-    name = argv[1];
-    assert(strlen(name) <= MAX_NAME_LEN);
+    *name = argv[1];
+    assert(strlen(*name) <= MAX_NAME_LEN);
     char *con_m = argv[2];
-    address = argv[3];
+    *address = argv[3];
     
     if(strcmp(con_m, "local") == 0 || strcmp(con_m, "LOCAL") == 0)
         *connection_mode = LOCAL;
@@ -238,7 +236,7 @@ void read_args(int argc, char *argv[], char *name, char *address, conn_mode_t *c
     }
 
     if(*connection_mode == LOCAL)
-        assert(strlen(address) <= UNIX_PATH_MAX);
+        assert(strlen(*address) <= UNIX_PATH_MAX);
 }
 
 void atexit_handle() {

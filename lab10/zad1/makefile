@@ -25,7 +25,7 @@ debug_fast:
 	$(CC) -Wall -Wextra -Wshadow -pedantic $(CLIENT_FILE) $(COMMON_FILE) -o $(CLIENT_OUT) -lpthread
 
 test: main
-	
+	./$(SERVER_OUT) 1666 $(TEST_SOCKET_PATH)
 
 clean:
 	rm -f $(SERVER_OUT) $(CLIENT_OUT) $(TEST_SOCKET_PATH) *.o *.out
