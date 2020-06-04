@@ -241,17 +241,70 @@ void remove_client(int i){
         if(opponent_id == i)
             opponent_id = boards[clients[i]->board_id]->players[1];
         send_msg(clients[opponent_id]->client_fd, &msg);
+        boards[clients[i]->board_id] = boards[--active_boards];
     }
     if(shutdown(clients[i]->client_fd, SHUT_RDWR) < 0)
         perror("shutdown");
     assert(close(clients[i]->client_fd) >= 0);
     clients[i] = clients[--active_clients];
-    for(int t = 0; t<2; t++)
-        if(boards[clients[i]->board_id]->players[t] == active_clients)
-            boards[clients[i]->board_id]->players[t] = i;
     polls[i]  = polls[active_clients];
     if(client_waiting == active_clients)
         client_waiting = i;
+}
+
+int won(board_t *board){
+    for(int b_h = 0; b_h<BOARD_HEIGHT; b_h++)
+        for(int b_w = 1; b_w < BOARD_WIDTH; b_w++){
+            int cell_last = b_h * BOARD_WIDTH + b_w -1;
+            int cell_id = b_h * BOARD_WIDTH + b_w;
+            if(board->values[cell_id] != board->values[cell_last])  
+                break;
+            else if(board->values[cell_id] == FREE)
+                break;
+            else if(b_w == BOARD_WIDTH -1)
+                return 1;
+        }
+    for(int b_w = 0; b_w < BOARD_WIDTH; b_w++)
+        for(int b_h = 1; b_h<BOARD_HEIGHT; b_h++){
+            int cell_last = (b_h - 1) * BOARD_WIDTH + b_w;
+            int cell_id = b_h * BOARD_WIDTH + b_w;
+            if(board->values[cell_id] != board->values[cell_last])  
+                break;
+            else if(board->values[cell_id] == FREE)
+                break;
+            else if(b_h == BOARD_HEIGHT -1)
+                return 1;
+        }
+    for(int i = 1; i<BOARD_HEIGHT; i++){
+        int cell_last = (i - 1) * BOARD_WIDTH + i - 1;
+        int cell_id = i * BOARD_WIDTH + i;
+        if(board->values[cell_id] != board->values[cell_last])  
+            break;
+        else if(board->values[cell_id] == FREE)
+            break;
+        else if(i == BOARD_WIDTH - 1)
+            return 1;
+    }
+    int b_h = 1, b_w = BOARD_WIDTH - 2;
+    while(b_w >= 0){
+        int cell_last = (b_h - 1) * BOARD_WIDTH + (b_w + 1);
+        int cell_id = b_h * BOARD_WIDTH + b_w;
+        if(board->values[cell_id] != board->values[cell_last])  
+            break;
+        else if(board->values[cell_id] == FREE)
+                break;
+        else if(b_w == 0)
+            return 1;
+        b_w--;b_h++;
+    }
+    return 0;
+}
+
+int draw(board_t *board){
+    for(int i = 0; i<BOARD_N_CELLS; i++)
+        if(board->values[i] == FREE)
+            return 0;
+    return 1;
 }
 
 void sign_received(int client_id, int position){
@@ -261,8 +314,25 @@ void sign_received(int client_id, int position){
         return;
     if(boards[board_id]->values[position] == FREE){
         boards[board_id]->values[position] = clients[client_id]->mark;
+        int w = won(boards[board_id]);
+        int d = draw(boards[board_id]);
+        if(w == 1 || d == 1){
+            msg_t msg;
+            msg.type = CLOSE_GAME;
+            int second_client = boards[board_id]->players[(boards[board_id]->move + 1) % 2];
+            if(w == 1){
+                strcpy(msg.body, "Wygrales!");
+                send_msg(clients[client_to_move]->client_fd, &msg);
+                strcpy(msg.body, "Przegrales!");
+            }else if(d == 1){
+                strcpy(msg.body,"Remis!");
+                send_msg(clients[client_to_move]->client_fd, &msg);
+            }
+            send_msg(clients[second_client]->client_fd, &msg); 
+        }
         boards[board_id]->move = (boards[board_id]->move + 1) % 2;
     }
+
     msg_t msg;
     msg.type = SIGN_GAME;
     memcpy(msg.body, (char *)boards[board_id], sizeof(board_t));
