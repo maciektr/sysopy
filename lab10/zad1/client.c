@@ -190,13 +190,13 @@ int get_connection(conn_mode_t mode, char *name, char *address){
         assert(socket_fd >= 0);
         assert(connect(socket_fd, (struct sockaddr*)&socket_addr, sizeof(socket_addr))>=0);
     }else if(mode == NET){
-        struct sockaddr_in socket_addr;
-        socket_addr.sin_family = AF_INET;
-
         char *colon_pointer = strchr(address, ':');
         assert(colon_pointer != NULL);
         int port_n = atoi(colon_pointer + 1);
         *colon_pointer = '\0';
+        
+        struct sockaddr_in socket_addr;
+        socket_addr.sin_family = AF_INET;
         socket_addr.sin_port = htons(port_n);
         socket_addr.sin_addr.s_addr = inet_addr(address);
 

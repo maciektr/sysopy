@@ -343,8 +343,8 @@ void sign_received(int client_id, int position){
 void *server_handle(){
     polls[MAX_CLIENTS + 1].fd = socket_unix_fd;
     polls[MAX_CLIENTS + 1].events = POLLIN;
-    polls[MAX_CLIENTS]. fd = socket_inet_fd;
-    polls[MAX_CLIENTS].fd = POLLIN;
+    polls[MAX_CLIENTS].fd = socket_inet_fd;
+    polls[MAX_CLIENTS].events = POLLIN;
 
     while(1){
         update_polls(polls);
