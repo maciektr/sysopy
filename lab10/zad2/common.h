@@ -35,11 +35,14 @@ typedef enum {
 
 typedef struct {
     msg_type_t type;
+    char sender[MAX_NAME_LEN];
     char body[MAX_MSG_LEN];
 } msg_t;
 
 int send_msg(int socket_fd, msg_t *msg);
 int read_msg(int socket_fd, msg_t *msg);
+int read_msg_with_addr(int socket_fd, struct sockaddr* addr, socklen_t* addrlen, msg_t *msg);
+int send_msg_with_addr(int socket_fd, msg_t *msg, struct sockaddr* addr, socklen_t *len);
 
 typedef enum {X, O, FREE} cell_t;
 #define BOARD_N_CELLS 9
@@ -55,6 +58,7 @@ typedef struct{
     char name[MAX_NAME_LEN];
     unsigned char ping_resp; 
     int client_fd;
+    struct sockaddr* addr;
     int board_id;
     cell_t mark;
 } client;

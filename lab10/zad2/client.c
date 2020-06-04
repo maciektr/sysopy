@@ -183,12 +183,21 @@ void handle_msg(int server_fd, msg_t *msg){
 int get_connection(conn_mode_t mode, char *name, char *address){
     int socket_fd = -1;
     if(mode == LOCAL){
-        struct sockaddr_un socket_addr;
-        socket_addr.sun_family = AF_UNIX;
-        strcpy(socket_addr.sun_path, address);
-        socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        struct sockaddr_un server_socket;
+        server_socket.sun_family = AF_UNIX;
+        strcpy(server_socket.sun_path, address);
+        socket_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
         assert(socket_fd >= 0);
-        assert(connect(socket_fd, (struct sockaddr*)&socket_addr, sizeof(socket_addr))>=0);
+
+        struct sockaddr_un client_socket;
+        client_socket.sun_family = AF_UNIX;
+        strcpy(client_socket.sun_path, name);
+        
+        // assert(bind(socket_fd, (struct sockaddr*) &client_socket, sizeof(client_socket)) >= 0);
+        if(bind(socket_fd, (struct sockaddr*) &client_socket, sizeof(client_socket)) <0)
+            perror("bind");
+        assert(connect(socket_fd, (struct sockaddr*)&server_socket, sizeof(server_socket))>=0);
+
     }else if(mode == NET){
         char *colon_pointer = strchr(address, ':');
         assert(colon_pointer != NULL);
@@ -200,8 +209,14 @@ int get_connection(conn_mode_t mode, char *name, char *address){
         socket_addr.sin_port = htons(port_n);
         socket_addr.sin_addr.s_addr = inet_addr(address);
 
-        socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+        socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
         assert(socket_fd >= 0);
+
+        struct sockaddr_in client_socket;
+        client_socket.sin_family = AF_INET;
+        client_socket.sin_port = 0;
+        client_socket.sin_addr.s_addr = inet_addr(address);
+        assert(bind(socket_fd, (struct sockaddr*) &client_socket, sizeof(client_socket)) >= 0);
         assert(connect(socket_fd, (struct sockaddr*)&socket_addr, sizeof(socket_addr))>=0);
     }
 
@@ -245,7 +260,6 @@ void atexit_handle() {
     msg.body[0] = '\0';
     send_msg(server_fd, &msg);
 
-    assert(shutdown(server_fd, SHUT_RDWR) >= 0);
     assert(close(server_fd) >= 0);
 }
 
